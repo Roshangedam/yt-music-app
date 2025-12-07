@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: ytmusic-app-prod
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./data/music_app.db
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=False
+      - CORS_ORIGINS=["https://yourdomain.com"]
+    volumes:
+      - ./logs:/app/logs
+      - app-data:/app/data
+    depends_on:
+      - redis
+    networks:
+      - ytmusic-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: ytmusic-redis-prod
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+    networks:
+      - ytmusic-net
+
+volumes:
+  app-data:
+  redis-data:
+
+networks:
+  ytmusic-net:
+    driver: bridge
