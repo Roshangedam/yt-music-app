@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Music Streaming</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            padding-bottom: 180px;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Navigation Tabs */
+        .tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .tab.active {
+            background: rgba(255, 255, 255, 0.3);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Content Area */
+        .content {
+            display: none;
+        }
+
+        .content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Search Bar */
+        .search-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            padding: 15px 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-container input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .search-container input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .search-container button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-container button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        /* Glass Card */
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
+        }
+
+        .card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+
+        .card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .card p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+        }
+
+        /* Player */
+        .player {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(30, 30, 50, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+
+        .player-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* Rotating Album Disk */
+        .album-disk {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .album-disk img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .album-disk.rotating img {
+            animation: rotate 10s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .album-disk::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Song Info */
+        .song-info {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .song-info h3 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .song-info p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        /* Player Controls */
+        .player-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex: 2;
+            min-width: 300px;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .control-btn.play-pause {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            font-size: 1.5rem;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .time {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            min-width: 45px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(30, 30, 50, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 12px;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .player-content {
+                flex-direction: column;
+            }
+
+            .album-disk {
+                width: 80px;
+                height: 80px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 YouTube Music Streaming</h1>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="songs">Songs</div>
+            <div class="tab" data-tab="playlists">Playlists</div>
+            <div class="tab" data-tab="history">History</div>
+            <div class="tab" data-tab="user">Account</div>
+        </div>
+
+        <!-- Songs Tab -->
+        <div class="content active" id="songs">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search for songs, artists, albums..." />
+                <button onclick="searchSongs()">Search</button>
+            </div>
+            <div id="songsGrid" class="grid"></div>
+        </div>
+
+        <!-- Playlists Tab -->
+        <div class="content" id="playlists">
+            <button class="btn btn-primary" onclick="showCreatePlaylistModal()" style="margin-bottom: 20px;">
+                + Create Playlist
+            </button>
+            <div id="playlistsGrid" class="grid"></div>
+        </div>
+
+        <!-- History Tab -->
+        <div class="content" id="history">
+            <div id="historyList"></div>
+        </div>
+
+        <!-- User/Login Tab -->
+        <div class="content" id="user">
+            <div id="loginSection">
+                <div class="card" style="max-width: 400px; margin: 0 auto;">
+                    <h2>Login</h2>
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="loginUsername" />
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" />
+                    </div>
+                    <button class="btn btn-primary" onclick="login()" style="width: 100%;">Login</button>
+                    <p style="margin-top: 15px; text-align: center; color: rgba(255,255,255,0.7);">
+                        Don't have an account? <a href="#" onclick="showSignup()" style="color: #667eea;">Sign up</a>
+                    </p>
+                </div>
+            </div>
+            <div id="userInfo" style="display: none;">
+                <div class="card" style="max-width: 400px; margin: 0 auto;">
+                    <h2>Account Info</h2>
+                    <p><strong>Username:</strong> <span id="userUsername"></span></p>
+                    <p><strong>Email:</strong> <span id="userEmail"></span></p>
+                    <button class="btn" onclick="logout()" style="width: 100%; margin-top: 20px;">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Music Player -->
+    <div class="player">
+        <audio id="audioPlayer"></audio>
+        <div class="player-content">
+            <div class="album-disk" id="albumDisk">
+                <img id="albumArt" src="https://via.placeholder.com/120" alt="Album Art" />
+            </div>
+            
+            <div class="song-info">
+                <h3 id="currentSongTitle">No song playing</h3>
+                <p id="currentSongArtist">Select a song to play</p>
+            </div>
+            
+            <div class="player-controls">
+                <div class="control-buttons">
+                    <button class="control-btn" onclick="previousSong()">⏮</button>
+                    <button class="control-btn play-pause" onclick="togglePlay()" id="playPauseBtn">▶</button>
+                    <button class="control-btn" onclick="stopSong()">⏹</button>
+                    <button class="control-btn" onclick="nextSong()">⏭</button>
+                    <button class="control-btn" onclick="toggleShuffle()" id="shuffleBtn">🔀</button>
+                </div>
+                
+                <div class="progress-container">
+                    <span class="time" id="currentTime">0:00</span>
+                    <div class="progress-bar" onclick="seekTo(event)">
+                        <div class="progress" id="progressBar"></div>
+                    </div>
+                    <span class="time" id="duration">0:00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="createPlaylistModal">
+        <div class="modal-content">
+            <h2>Create Playlist</h2>
+            <div class="form-group">
+                <label>Playlist Name</label>
+                <input type="text" id="playlistName" />
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="playlistDescription"></textarea>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" onclick="createPlaylist()">Create</button>
+                <button class="btn" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api/v1';
+        let token = localStorage.getItem('token');
+        let currentPlaylist = [];
+        let currentSongIndex = -1;
+        let isPlaying = false;
+        let isShuffle = false;
+
+        // Tab Navigation
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+                
+                if (tab.dataset.tab === 'playlists') loadPlaylists();
+                if (tab.dataset.tab === 'history') loadHistory();
+                if (tab.dataset.tab === 'user') checkAuth();
+            });
+        });
+
+        // Search Songs
+        async function searchSongs() {
+            const query = document.getElementById('searchInput').value;
+            if (!query) return;
+
+            const grid = document.getElementById('songsGrid');
+            grid.innerHTML = '<div class="loading">Searching...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/music/search?query=${encodeURIComponent(query)}`);
+                const songs = await response.json();
+                
+                grid.innerHTML = '';
+                songs.forEach(song => {
+                    const card = createSongCard(song);
+                    grid.appendChild(card);
+                });
+            } catch (error) {
+                grid.innerHTML = '<div class="loading">Error loading songs</div>';
+            }
+        }
+
+        // Create Song Card
+        function createSongCard(song) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <img src="${song.thumbnail || 'https://via.placeholder.com/300'}" alt="${song.title}" />
+                <h3>${song.title}</h3>
+                <p>🎤 ${song.artist}</p>
+                ${song.album ? `<p>💿 ${song.album}</p>` : ''}
+                <p>⏱ ${formatDuration(song.duration)}</p>
+                <div class="card-actions">
+                    <button class="btn btn-primary" onclick='playSong(${JSON.stringify(song)})'>Play</button>
+                    ${token ? `<button class="btn" onclick='addToPlaylist("${song.video_id}")'>+ Playlist</button>` : ''}
+                </div>
+            `;
+            return card;
+        }
+
+        // Play Song
+        async function playSong(song) {
+            try {
+                const response = await fetch(`${API_BASE}/music/stream/info/${song.video_id}`, {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+                const streamInfo = await response.json();
+                
+                const audio = document.getElementById('audioPlayer');
+                audio.src = streamInfo.url;
+                audio.play();
+                
+                document.getElementById('currentSongTitle').textContent = song.title;
+                document.getElementById('currentSongArtist').textContent = song.artist;
+                document.getElementById('albumArt').src = song.thumbnail || 'https://via.placeholder.com/120';
+                document.getElementById('albumDisk').classList.add('rotating');
+                document.getElementById('playPauseBtn').textContent = '⏸';
+                isPlaying = true;
+            } catch (error) {
+                alert('Error playing song');
+            }
+        }
+
+        // Toggle Play/Pause
+        function togglePlay() {
+            const audio = document.getElementById('audioPlayer');
+            const btn = document.getElementById('playPauseBtn');
+            const disk = document.getElementById('albumDisk');
+            
+            if (isPlaying) {
+                audio.pause();
+                btn.textContent = '▶';
+                disk.classList.remove('rotating');
+                isPlaying = false;
+            } else {
+                audio.play();
+                btn.textContent = '⏸';
+                disk.classList.add('rotating');
+                isPlaying = true;
+            }
+        }
+
+        // Stop Song
+        function stopSong() {
+            const audio = document.getElementById('audioPlayer');
+            audio.pause();
+            audio.currentTime = 0;
+            document.getElementById('playPauseBtn').textContent = '▶';
+            document.getElementById('albumDisk').classList.remove('rotating');
+            isPlaying = false;
+        }
+
+        // Next/Previous Song
+        function nextSong() {
+            if (currentPlaylist.length === 0) return;
+            currentSongIndex = (currentSongIndex + 1) % currentPlaylist.length;
+            playSong(currentPlaylist[currentSongIndex]);
+        }
+
+        function previousSong() {
+            if (currentPlaylist.length === 0) return;
+            currentSongIndex = currentSongIndex - 1;
+            if (currentSongIndex < 0) currentSongIndex = currentPlaylist.length - 1;
+            playSong(currentPlaylist[currentSongIndex]);
+        }
+
+        // Shuffle
+        function toggleShuffle() {
+            isShuffle = !isShuffle;
+            document.getElementById('shuffleBtn').style.opacity = isShuffle ? '1' : '0.5';
+        }
+
+        // Progress Bar
+        const audio = document.getElementById('audioPlayer');
+        audio.addEventListener('timeupdate', () => {
+            const percent = (audio.currentTime / audio.duration) * 100;
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
+            document.getElementById('duration').textContent = formatTime(audio.duration);
+        });
+
+        function seekTo(event) {
+            const bar = event.currentTarget;
+            const rect = bar.getBoundingClientRect();
+            const percent = (event.clientX - rect.left) / rect.width;
+            audio.currentTime = percent * audio.duration;
+        }
+
+        // Format Time
+        function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function formatDuration(seconds) {
+            if (!seconds) return 'Unknown';
+            return formatTime(seconds);
+        }
+
+        // Authentication
+        function checkAuth() {
+            if (token) {
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('userInfo').style.display = 'block';
+                loadUserInfo();
+            } else {
+                document.getElementById('loginSection').style.display = 'block';
+                document.getElementById('userInfo').style.display = 'none';
+            }
+        }
+
+        async function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('password', password);
+            
+            try {
+                const response = await fetch(`${API_BASE}/user/login`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    token = data.access_token;
+                    localStorage.setItem('token', token);
+                    checkAuth();
+                } else {
+                    alert('Login failed');
+                }
+            } catch (error) {
+                alert('Login error');
+            }
+        }
+
+        function logout() {
+            token = null;
+            localStorage.removeItem('token');
+            checkAuth();
+        }
+
+        async function loadUserInfo() {
+            try {
+                const response = await fetch(`${API_BASE}/user/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const user = await response.json();
+                document.getElementById('userUsername').textContent = user.username;
+                document.getElementById('userEmail').textContent = user.email;
+            } catch (error) {
+                console.error('Error loading user info');
+            }
+        }
+
+        // Playlists
+        function showCreatePlaylistModal() {
+            if (!token) {
+                alert('Please login to create playlists');
+                return;
+            }
+            document.getElementById('createPlaylistModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('createPlaylistModal').classList.remove('active');
+        }
+
+        async function createPlaylist() {
+            const name = document.getElementById('playlistName').value;
+            const description = document.getElementById('playlistDescription').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/playlist/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ name, description })
+                });
+                
+                if (response.ok) {
+                    closeModal();
+                    loadPlaylists();
+                }
+            } catch (error) {
+                alert('Error creating playlist');
+            }
+        }
+
+        async function loadPlaylists() {
+            if (!token) {
+                document.getElementById('playlistsGrid').innerHTML = '<div class="loading">Please login to view playlists</div>';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/playlist/my-playlists`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const playlists = await response.json();
+                
+                const grid = document.getElementById('playlistsGrid');
+                grid.innerHTML = '';
+                
+                playlists.forEach(playlist => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <h3>${playlist.name}</h3>
+                        <p>${playlist.description || 'No description'}</p>
+                        <p>📀 ${playlist.songs.length} songs</p>
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Error loading playlists');
+            }
+        }
+
+        async function loadHistory() {
+            if (!token) {
+                document.getElementById('historyList').innerHTML = '<div class="loading">Please login to view history</div>';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/user/history`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const history = await response.json();
+                
+                const list = document.getElementById('historyList');
+                list.innerHTML = '<div class="grid">';
+                
+                for (const item of history) {
+                    // Fetch song details for each history item
+                    const songResponse = await fetch(`${API_BASE}/music/song/${item.video_id}`);
+                    const song = await songResponse.json();
+                    
+                    const card = createSongCard(song);
+                    list.querySelector('.grid').appendChild(card);
+                }
+                
+                list.innerHTML += '</div>';
+            } catch (error) {
+                console.error('Error loading history');
+            }
+        }
+
+        // Search on Enter
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchSongs();
+        });
+
+        // Initialize
+        checkAuth();
+    </script>
+</body>
+</html>
