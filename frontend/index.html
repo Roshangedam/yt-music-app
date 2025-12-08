@@ -12,14 +12,13 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #fff;
             overflow-x: hidden;
         }
 
-        /* Glassmorphism Container */
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -27,56 +26,39 @@
             padding-bottom: 180px;
         }
 
-        /* Header */
-        .header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px 30px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-        }
-
-        .header h1 {
-            font-size: 2rem;
-            background: linear-gradient(45deg, #fff, #f0f0f0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* Navigation Tabs */
+        /* Tabs */
         .tabs {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             margin-bottom: 30px;
             flex-wrap: wrap;
         }
 
         .tab {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 12px 30px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 10px 24px;
             border-radius: 50px;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 1rem;
-            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
         }
 
         .tab:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.25);
             transform: translateY(-2px);
         }
 
         .tab.active {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.35);
             color: #fff;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         }
 
-        /* Content Area */
+        /* Content */
         .content {
             display: none;
         }
@@ -93,14 +75,15 @@
 
         /* Search Bar */
         .search-container {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(10px);
             border-radius: 50px;
-            padding: 15px 25px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
             display: flex;
             gap: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
 
         .search-container input {
@@ -108,7 +91,7 @@
             background: transparent;
             border: none;
             color: #fff;
-            font-size: 1rem;
+            font-size: 0.95rem;
             outline: none;
         }
 
@@ -117,54 +100,169 @@
         }
 
         .search-container button {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.25);
             border: none;
             color: #fff;
-            padding: 8px 20px;
+            padding: 8px 24px;
             border-radius: 50px;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-weight: 500;
         }
 
         .search-container button:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(1.02);
         }
 
-        /* Grid Layout */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+        /* View Toggle */
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            justify-content: flex-end;
         }
 
-        /* Glass Card */
-        .card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-            transition: all 0.3s ease;
+        .view-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 8px 16px;
+            border-radius: 8px;
             cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .view-btn:hover, .view-btn.active {
+            background: rgba(255, 255, 255, 0.3);
+            color: #fff;
+        }
+
+        /* List View */
+        .songs-list {
+            display: none;
+        }
+
+        .songs-list.active {
+            display: block;
+        }
+
+        .song-item {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .song-item:hover {
+            background: rgba(255, 255, 255, 0.18);
+            transform: translateX(4px);
+        }
+
+        .song-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .song-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .song-item-title {
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .song-item-artist {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .song-item-duration {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .song-item-play {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .song-item-play:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Grid View */
+        .songs-grid {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+        }
+
+        .songs-grid.active {
+            display: grid;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
         }
 
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.15);
         }
 
         .card img {
             width: 100%;
-            height: 200px;
+            height: 160px;
             object-fit: cover;
-            border-radius: 15px;
-            margin-bottom: 15px;
+            border-radius: 12px;
+            margin-bottom: 12px;
         }
 
         .card h3 {
-            font-size: 1.1rem;
-            margin-bottom: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 6px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -172,14 +270,17 @@
 
         .card p {
             color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9rem;
-            margin-bottom: 5px;
+            font-size: 0.8rem;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .card-actions {
             display: flex;
-            gap: 10px;
-            margin-top: 15px;
+            gap: 8px;
+            margin-top: 12px;
         }
 
         .btn {
@@ -187,10 +288,11 @@
             border: none;
             color: #fff;
             padding: 8px 16px;
-            border-radius: 50px;
+            border-radius: 20px;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
+            font-weight: 500;
         }
 
         .btn:hover {
@@ -198,11 +300,12 @@
         }
 
         .btn-primary {
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #667eea, #764ba2);
         }
 
         .btn-primary:hover {
             transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
 
         /* Player */
@@ -211,11 +314,11 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(30, 30, 50, 0.95);
+            background: rgba(20, 20, 35, 0.98);
             backdrop-filter: blur(20px);
-            padding: 20px;
+            padding: 12px 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.3);
             z-index: 1000;
         }
 
@@ -224,19 +327,19 @@
             margin: 0 auto;
             display: flex;
             align-items: center;
-            gap: 20px;
-            flex-wrap: wrap;
+            gap: 16px;
         }
 
-        /* Rotating Album Disk */
+        /* Album Disk */
         .album-disk {
-            width: 120px;
-            height: 120px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             overflow: hidden;
             position: relative;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-            border: 3px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            flex-shrink: 0;
         }
 
         .album-disk img {
@@ -260,9 +363,9 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 30px;
-            height: 30px;
-            background: rgba(0, 0, 0, 0.8);
+            width: 18px;
+            height: 18px;
+            background: rgba(0, 0, 0, 0.9);
             border-radius: 50%;
             border: 2px solid rgba(255, 255, 255, 0.3);
         }
@@ -270,31 +373,38 @@
         /* Song Info */
         .song-info {
             flex: 1;
-            min-width: 200px;
+            min-width: 150px;
         }
 
         .song-info h3 {
-            font-size: 1.1rem;
-            margin-bottom: 5px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .song-info p {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.75rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         /* Player Controls */
         .player-controls {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 8px;
             flex: 2;
-            min-width: 300px;
+            min-width: 280px;
         }
 
         .control-buttons {
             display: flex;
-            gap: 15px;
+            gap: 8px;
             justify-content: center;
             align-items: center;
         }
@@ -303,15 +413,15 @@
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             color: #fff;
-            width: 50px;
-            height: 50px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 0.9rem;
         }
 
         .control-btn:hover {
@@ -320,37 +430,44 @@
         }
 
         .control-btn.play-pause {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            font-size: 1.5rem;
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            font-size: 1.1rem;
+            border: none;
+        }
+
+        .control-btn.play-pause:hover {
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
         /* Progress Bar */
         .progress-container {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .time {
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.7);
-            min-width: 45px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.6);
+            min-width: 38px;
+            font-variant-numeric: tabular-nums;
         }
 
         .progress-bar {
             flex: 1;
-            height: 6px;
+            height: 4px;
             background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
+            border-radius: 2px;
             overflow: hidden;
             cursor: pointer;
+            position: relative;
         }
 
         .progress {
             height: 100%;
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: linear-gradient(90deg, #667eea, #764ba2);
             width: 0%;
             transition: width 0.1s linear;
         }
@@ -364,7 +481,7 @@
             right: 0;
             bottom: 0;
             background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(8px);
             z-index: 2000;
             align-items: center;
             justify-content: center;
@@ -380,7 +497,7 @@
             backdrop-filter: blur(20px);
             border-radius: 20px;
             padding: 30px;
-            max-width: 500px;
+            max-width: 460px;
             width: 100%;
             border: 1px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
@@ -388,16 +505,19 @@
 
         .modal-content h2 {
             margin-bottom: 20px;
+            font-size: 1.4rem;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .form-group label {
             display: block;
             margin-bottom: 8px;
             color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+            font-weight: 500;
         }
 
         .form-group input,
@@ -408,48 +528,60 @@
             border-radius: 10px;
             padding: 12px;
             color: #fff;
-            font-size: 1rem;
+            font-size: 0.95rem;
         }
 
         .form-group textarea {
             resize: vertical;
             min-height: 80px;
+            font-family: inherit;
         }
 
-        /* Loading */
         .loading {
             text-align: center;
             padding: 40px;
             color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
             .player-content {
-                flex-direction: column;
+                flex-wrap: wrap;
             }
 
             .album-disk {
-                width: 80px;
-                height: 80px;
+                width: 56px;
+                height: 56px;
             }
 
-            .grid {
+            .songs-grid {
                 grid-template-columns: 1fr;
             }
 
-            .tabs {
-                overflow-x: auto;
+            .view-toggle {
+                justify-content: center;
+            }
+
+            .control-buttons {
+                gap: 6px;
+            }
+
+            .control-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 0.8rem;
+            }
+
+            .control-btn.play-pause {
+                width: 40px;
+                height: 40px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🎵 YouTube Music Streaming</h1>
-        </div>
-
         <div class="tabs">
             <div class="tab active" data-tab="songs">Songs</div>
             <div class="tab" data-tab="playlists">Playlists</div>
@@ -463,15 +595,22 @@
                 <input type="text" id="searchInput" placeholder="Search for songs, artists, albums..." />
                 <button onclick="searchSongs()">Search</button>
             </div>
-            <div id="songsGrid" class="grid"></div>
+
+            <div class="view-toggle">
+                <button class="view-btn active" onclick="setView('list')">List View</button>
+                <button class="view-btn" onclick="setView('grid')">Grid View</button>
+            </div>
+
+            <div class="songs-list active" id="songsList"></div>
+            <div class="songs-grid" id="songsGrid"></div>
         </div>
 
         <!-- Playlists Tab -->
         <div class="content" id="playlists">
             <button class="btn btn-primary" onclick="showCreatePlaylistModal()" style="margin-bottom: 20px;">
-                + Create Playlist
+                Create Playlist
             </button>
-            <div id="playlistsGrid" class="grid"></div>
+            <div class="songs-grid" id="playlistsGrid"></div>
         </div>
 
         <!-- History Tab -->
@@ -483,7 +622,7 @@
         <div class="content" id="user">
             <div id="loginSection">
                 <div class="card" style="max-width: 400px; margin: 0 auto;">
-                    <h2>Login</h2>
+                    <h2 style="margin-bottom: 20px;">Login</h2>
                     <div class="form-group">
                         <label>Username</label>
                         <input type="text" id="loginUsername" />
@@ -493,17 +632,17 @@
                         <input type="password" id="loginPassword" />
                     </div>
                     <button class="btn btn-primary" onclick="login()" style="width: 100%;">Login</button>
-                    <p style="margin-top: 15px; text-align: center; color: rgba(255,255,255,0.7);">
-                        Don't have an account? <a href="#" onclick="showSignup()" style="color: #667eea;">Sign up</a>
+                    <p style="margin-top: 15px; text-align: center; color: rgba(255,255,255,0.7); font-size: 0.85rem;">
+                        Don't have an account? <a href="#" onclick="showSignup()" style="color: #a8b8ff; text-decoration: none;">Sign up</a>
                     </p>
                 </div>
             </div>
             <div id="userInfo" style="display: none;">
                 <div class="card" style="max-width: 400px; margin: 0 auto;">
-                    <h2>Account Info</h2>
-                    <p><strong>Username:</strong> <span id="userUsername"></span></p>
-                    <p><strong>Email:</strong> <span id="userEmail"></span></p>
-                    <button class="btn" onclick="logout()" style="width: 100%; margin-top: 20px;">Logout</button>
+                    <h2 style="margin-bottom: 20px;">Account Info</h2>
+                    <p style="margin-bottom: 10px;"><strong>Username:</strong> <span id="userUsername"></span></p>
+                    <p style="margin-bottom: 20px;"><strong>Email:</strong> <span id="userEmail"></span></p>
+                    <button class="btn" onclick="logout()" style="width: 100%;">Logout</button>
                 </div>
             </div>
         </div>
@@ -514,7 +653,7 @@
         <audio id="audioPlayer"></audio>
         <div class="player-content">
             <div class="album-disk" id="albumDisk">
-                <img id="albumArt" src="https://via.placeholder.com/120" alt="Album Art" />
+                <img id="albumArt" src="https://via.placeholder.com/70" alt="Album Art" />
             </div>
             
             <div class="song-info">
@@ -524,11 +663,11 @@
             
             <div class="player-controls">
                 <div class="control-buttons">
-                    <button class="control-btn" onclick="previousSong()">⏮</button>
-                    <button class="control-btn play-pause" onclick="togglePlay()" id="playPauseBtn">▶</button>
-                    <button class="control-btn" onclick="stopSong()">⏹</button>
-                    <button class="control-btn" onclick="nextSong()">⏭</button>
-                    <button class="control-btn" onclick="toggleShuffle()" id="shuffleBtn">🔀</button>
+                    <button class="control-btn" onclick="previousSong()" title="Previous">⏮</button>
+                    <button class="control-btn play-pause" onclick="togglePlay()" id="playPauseBtn" title="Play/Pause">▶</button>
+                    <button class="control-btn" onclick="stopSong()" title="Stop">⏹</button>
+                    <button class="control-btn" onclick="nextSong()" title="Next">⏭</button>
+                    <button class="control-btn" onclick="toggleShuffle()" id="shuffleBtn" style="opacity: 0.5;" title="Shuffle">🔀</button>
                 </div>
                 
                 <div class="progress-container">
@@ -542,21 +681,21 @@
         </div>
     </div>
 
-    <!-- Modals -->
+    <!-- Create Playlist Modal -->
     <div class="modal" id="createPlaylistModal">
         <div class="modal-content">
             <h2>Create Playlist</h2>
             <div class="form-group">
                 <label>Playlist Name</label>
-                <input type="text" id="playlistName" />
+                <input type="text" id="playlistName" placeholder="My Playlist" />
             </div>
             <div class="form-group">
                 <label>Description</label>
-                <textarea id="playlistDescription"></textarea>
+                <textarea id="playlistDescription" placeholder="Optional description..."></textarea>
             </div>
             <div style="display: flex; gap: 10px;">
-                <button class="btn btn-primary" onclick="createPlaylist()">Create</button>
-                <button class="btn" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="createPlaylist()" style="flex: 1;">Create</button>
+                <button class="btn" onclick="closeModal()" style="flex: 1;">Cancel</button>
             </div>
         </div>
     </div>
@@ -568,6 +707,7 @@
         let currentSongIndex = -1;
         let isPlaying = false;
         let isShuffle = false;
+        let currentView = 'list';
 
         // Tab Navigation
         document.querySelectorAll('.tab').forEach(tab => {
@@ -584,49 +724,101 @@
             });
         });
 
+        // View Toggle
+        function setView(view) {
+            currentView = view;
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (view === 'list') {
+                document.getElementById('songsList').classList.add('active');
+                document.getElementById('songsGrid').classList.remove('active');
+            } else {
+                document.getElementById('songsList').classList.remove('active');
+                document.getElementById('songsGrid').classList.add('active');
+            }
+        }
+
         // Search Songs
         async function searchSongs() {
             const query = document.getElementById('searchInput').value;
             if (!query) return;
 
-            const grid = document.getElementById('songsGrid');
-            grid.innerHTML = '<div class="loading">Searching...</div>';
+            const listContainer = document.getElementById('songsList');
+            const gridContainer = document.getElementById('songsGrid');
+            
+            listContainer.innerHTML = '<div class="loading">Searching...</div>';
+            gridContainer.innerHTML = '<div class="loading">Searching...</div>';
 
             try {
                 const response = await fetch(`${API_BASE}/music/search?query=${encodeURIComponent(query)}`);
                 const songs = await response.json();
                 
-                grid.innerHTML = '';
-                songs.forEach(song => {
-                    const card = createSongCard(song);
-                    grid.appendChild(card);
+                currentPlaylist = songs;
+                
+                // Populate List View
+                listContainer.innerHTML = '';
+                songs.forEach((song, index) => {
+                    const listItem = createSongListItem(song, index);
+                    listContainer.appendChild(listItem);
+                });
+
+                // Populate Grid View
+                gridContainer.innerHTML = '';
+                songs.forEach((song, index) => {
+                    const card = createSongCard(song, index);
+                    gridContainer.appendChild(card);
                 });
             } catch (error) {
-                grid.innerHTML = '<div class="loading">Error loading songs</div>';
+                console.error('Search error:', error);
+                listContainer.innerHTML = '<div class="loading">Error loading songs. Please try again.</div>';
+                gridContainer.innerHTML = '<div class="loading">Error loading songs. Please try again.</div>';
             }
         }
 
+        // Create Song List Item
+        function createSongListItem(song, index) {
+            const item = document.createElement('div');
+            item.className = 'song-item';
+            item.innerHTML = `
+                <img src="${song.thumbnail || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'}" alt="${song.title}" />
+                <div class="song-item-info">
+                    <div class="song-item-title">${song.title}</div>
+                    <div class="song-item-artist">${song.artist}${song.album ? ' • ' + song.album : ''}</div>
+                </div>
+                <span class="song-item-duration">${formatDuration(song.duration)}</span>
+                <button class="song-item-play" onclick='playSongByIndex(${index})'>▶</button>
+            `;
+            return item;
+        }
+
         // Create Song Card
-        function createSongCard(song) {
+        function createSongCard(song, index) {
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
-                <img src="${song.thumbnail || 'https://via.placeholder.com/300'}" alt="${song.title}" />
+                <img src="${song.thumbnail || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'}" alt="${song.title}" />
                 <h3>${song.title}</h3>
-                <p>🎤 ${song.artist}</p>
-                ${song.album ? `<p>💿 ${song.album}</p>` : ''}
-                <p>⏱ ${formatDuration(song.duration)}</p>
+                <p>${song.artist}</p>
+                ${song.album ? `<p>${song.album}</p>` : ''}
+                <p>${formatDuration(song.duration)}</p>
                 <div class="card-actions">
-                    <button class="btn btn-primary" onclick='playSong(${JSON.stringify(song)})'>Play</button>
-                    ${token ? `<button class="btn" onclick='addToPlaylist("${song.video_id}")'>+ Playlist</button>` : ''}
+                    <button class="btn btn-primary" onclick='playSongByIndex(${index})'>Play</button>
+                    ${token ? `<button class="btn" onclick='addToPlaylist("${song.video_id}")'>Add to Playlist</button>` : ''}
                 </div>
             `;
             return card;
         }
 
+        // Play Song by Index
+        function playSongByIndex(index) {
+            currentSongIndex = index;
+            playSong(currentPlaylist[index]);
+        }
+
         // Play Song
         async function playSong(song) {
-            try {
+            try {                
                 const response = await fetch(`${API_BASE}/music/stream/info/${song.video_id}`, {
                     headers: token ? { 'Authorization': `Bearer ${token}` } : {}
                 });
@@ -652,6 +844,8 @@
             const audio = document.getElementById('audioPlayer');
             const btn = document.getElementById('playPauseBtn');
             const disk = document.getElementById('albumDisk');
+            
+            if (!audio.src) return;
             
             if (isPlaying) {
                 audio.pause();
@@ -679,7 +873,12 @@
         // Next/Previous Song
         function nextSong() {
             if (currentPlaylist.length === 0) return;
-            currentSongIndex = (currentSongIndex + 1) % currentPlaylist.length;
+            
+            if (isShuffle) {
+                currentSongIndex = Math.floor(Math.random() * currentPlaylist.length);
+            } else {
+                currentSongIndex = (currentSongIndex + 1) % currentPlaylist.length;
+            }
             playSong(currentPlaylist[currentSongIndex]);
         }
 
@@ -705,6 +904,10 @@
             document.getElementById('duration').textContent = formatTime(audio.duration);
         });
 
+        audio.addEventListener('ended', () => {
+            nextSong();
+        });
+
         function seekTo(event) {
             const bar = event.currentTarget;
             const rect = bar.getBoundingClientRect();
@@ -721,7 +924,7 @@
         }
 
         function formatDuration(seconds) {
-            if (!seconds) return 'Unknown';
+            if (!seconds) return '--:--';
             return formatTime(seconds);
         }
 
@@ -741,6 +944,11 @@
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
             
+            if (!username || !password) {
+                alert('Please enter username and password');
+                return;
+            }
+            
             const formData = new FormData();
             formData.append('username', username);
             formData.append('password', password);
@@ -757,10 +965,11 @@
                     localStorage.setItem('token', token);
                     checkAuth();
                 } else {
-                    alert('Login failed');
+                    alert('Login failed. Please check your credentials.');
                 }
             } catch (error) {
-                alert('Login error');
+                console.error('Login error:', error);
+                alert('Login error. Please try again.');
             }
         }
 
@@ -775,12 +984,21 @@
                 const response = await fetch(`${API_BASE}/user/me`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load user info');
+                }
+                
                 const user = await response.json();
                 document.getElementById('userUsername').textContent = user.username;
                 document.getElementById('userEmail').textContent = user.email;
             } catch (error) {
-                console.error('Error loading user info');
+                console.error('Error loading user info:', error);
             }
+        }
+
+        function showSignup() {
+            alert('Signup feature coming soon! Please contact admin for account creation.');
         }
 
         // Playlists
@@ -800,6 +1018,11 @@
             const name = document.getElementById('playlistName').value;
             const description = document.getElementById('playlistDescription').value;
             
+            if (!name) {
+                alert('Please enter a playlist name');
+                return;
+            }
+            
             try {
                 const response = await fetch(`${API_BASE}/playlist/create`, {
                     method: 'POST',
@@ -811,10 +1034,15 @@
                 });
                 
                 if (response.ok) {
+                    document.getElementById('playlistName').value = '';
+                    document.getElementById('playlistDescription').value = '';
                     closeModal();
                     loadPlaylists();
+                } else {
+                    alert('Failed to create playlist');
                 }
             } catch (error) {
+                console.error('Error creating playlist:', error);
                 alert('Error creating playlist');
             }
         }
@@ -825,14 +1053,26 @@
                 return;
             }
             
+            document.getElementById('playlistsGrid').innerHTML = '<div class="loading">Loading playlists...</div>';
+            
             try {
                 const response = await fetch(`${API_BASE}/playlist/my-playlists`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load playlists');
+                }
+                
                 const playlists = await response.json();
                 
                 const grid = document.getElementById('playlistsGrid');
                 grid.innerHTML = '';
+                
+                if (playlists.length === 0) {
+                    grid.innerHTML = '<div class="loading">No playlists yet. Create one to get started!</div>';
+                    return;
+                }
                 
                 playlists.forEach(playlist => {
                     const card = document.createElement('div');
@@ -840,12 +1080,16 @@
                     card.innerHTML = `
                         <h3>${playlist.name}</h3>
                         <p>${playlist.description || 'No description'}</p>
-                        <p>📀 ${playlist.songs.length} songs</p>
+                        <p><strong>Songs:</strong> ${playlist.songs.length}</p>
+                        <p style="font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-top: 8px;">
+                            Created: ${new Date(playlist.created_at).toLocaleDateString()}
+                        </p>
                     `;
                     grid.appendChild(card);
                 });
             } catch (error) {
-                console.error('Error loading playlists');
+                console.error('Error loading playlists:', error);
+                document.getElementById('playlistsGrid').innerHTML = '<div class="loading">Error loading playlists</div>';
             }
         }
 
@@ -855,27 +1099,55 @@
                 return;
             }
             
+            document.getElementById('historyList').innerHTML = '<div class="loading">Loading history...</div>';
+            
             try {
                 const response = await fetch(`${API_BASE}/user/history`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load history');
+                }
+                
                 const history = await response.json();
                 
                 const list = document.getElementById('historyList');
-                list.innerHTML = '<div class="grid">';
                 
-                for (const item of history) {
-                    // Fetch song details for each history item
-                    const songResponse = await fetch(`${API_BASE}/music/song/${item.video_id}`);
-                    const song = await songResponse.json();
-                    
-                    const card = createSongCard(song);
-                    list.querySelector('.grid').appendChild(card);
+                if (history.length === 0) {
+                    list.innerHTML = '<div class="loading">No listening history yet</div>';
+                    return;
                 }
                 
-                list.innerHTML += '</div>';
+                list.innerHTML = '<div class="songs-list active"></div>';
+                const container = list.querySelector('.songs-list');
+                
+                for (const item of history.slice(0, 50)) {
+                    try {
+                        const songResponse = await fetch(`${API_BASE}/music/song/${item.video_id}`);
+                        if (!songResponse.ok) continue;
+                        
+                        const song = await songResponse.json();
+                        
+                        const listItem = document.createElement('div');
+                        listItem.className = 'song-item';
+                        listItem.innerHTML = `
+                            <img src="${song.thumbnail || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'}" alt="${song.title}" />
+                            <div class="song-item-info">
+                                <div class="song-item-title">${song.title}</div>
+                                <div class="song-item-artist">${song.artist} • ${new Date(item.played_at).toLocaleString()}</div>
+                            </div>
+                            <span class="song-item-duration">${formatDuration(song.duration)}</span>
+                            <button class="song-item-play" onclick='playSong(${JSON.stringify(song).replace(/'/g, "\\'")})'>▶</button>
+                        `;
+                        container.appendChild(listItem);
+                    } catch (err) {
+                        console.error('Error loading history item:', err);
+                    }
+                }
             } catch (error) {
-                console.error('Error loading history');
+                console.error('Error loading history:', error);
+                document.getElementById('historyList').innerHTML = '<div class="loading">Error loading history</div>';
             }
         }
 
