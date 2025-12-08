@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,12 +27,30 @@
             padding-bottom: 180px;
         }
 
+        /* header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px 20px;
+            z-index: 10000;
+            flex-wrap: wrap;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
         /* Tabs */
-        .tabs {
+        .tabs {            
             display: flex;
             gap: 10px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
+            margin-bottom: 30px;            
+            z-index: 10000;
         }
 
         .tab {
@@ -69,8 +88,23 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Glassmorphism Effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         /* Search Bar */
@@ -78,12 +112,13 @@
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(10px);
             border-radius: 50px;
-            padding: 12px 20px;
+            padding: 4px 24px;
             margin-bottom: 20px;
             border: 1px solid rgba(255, 255, 255, 0.25);
             display: flex;
             gap: 10px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            z-index: 10000;
         }
 
         .search-container input {
@@ -135,7 +170,8 @@
             font-weight: 500;
         }
 
-        .view-btn:hover, .view-btn.active {
+        .view-btn:hover,
+        .view-btn.active {
             background: rgba(255, 255, 255, 0.3);
             color: #fff;
         }
@@ -143,6 +179,7 @@
         /* List View */
         .songs-list {
             display: none;
+            margin: 89px 75px 70px 85px;
         }
 
         .songs-list.active {
@@ -311,13 +348,12 @@
         /* Player */
         .player {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(20, 20, 35, 0.98);
-            backdrop-filter: blur(20px);
+            bottom: 10px;
+            left: 20px;
+            right: 20px;
             padding: 12px 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.3);
             z-index: 1000;
         }
@@ -330,44 +366,69 @@
             gap: 16px;
         }
 
-        /* Album Disk */
-        .album-disk {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            overflow: hidden;
+
+        /* CD Player Animation */
+        .cd-player {
             position: relative;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            flex-shrink: 0;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 20px;
         }
 
-        .album-disk img {
+        .cd-disc {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            position: relative;
+            animation: rotate 20s linear infinite;
+            animation-play-state: paused;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), inset 0 0 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .cd-disc.playing {
+            animation-play-state: running;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .cd-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            border: 3px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .cd-thumbnail {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        .album-disk.rotating img {
-            animation: rotate 10s linear infinite;
-        }
-
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .album-disk::after {
-            content: '';
+        .cd-hole {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 18px;
-            height: 18px;
-            background: rgba(0, 0, 0, 0.9);
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: linear-gradient(135deg, #1a1a2e, #0f0f1e);
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
         }
 
         /* Song Info */
@@ -580,27 +641,30 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <div class="tabs">
-            <div class="tab active" data-tab="songs">Songs</div>
-            <div class="tab" data-tab="playlists">Playlists</div>
-            <div class="tab" data-tab="history">History</div>
-            <div class="tab" data-tab="user">Account</div>
+        <div class="header">
+            <div class="tabs">
+                <div class="tab glass active" data-tab="songs">Songs</div>
+                <div class="tab glass" data-tab="playlists">Playlists</div>
+                <div class="tab glass" data-tab="history">History</div>
+                <div class="tab glass" data-tab="user">Account</div>
+            </div>
+            <div class="header-right">
+                <div class="search-container glass">
+                    <input type="text" id="searchInput" placeholder="Search for songs, artists, albums..." />
+                    <button onclick="searchSongs()">Search</button>
+                </div>
+                <div class="view-toggle">
+                    <button class="glass view-btn active" onclick="setView('list')">List View</button>
+                    <button class="glass view-btn" onclick="setView('grid')">Grid View</button>
+                </div>
+            </div>
         </div>
 
         <!-- Songs Tab -->
         <div class="content active" id="songs">
-            <div class="search-container">
-                <input type="text" id="searchInput" placeholder="Search for songs, artists, albums..." />
-                <button onclick="searchSongs()">Search</button>
-            </div>
-
-            <div class="view-toggle">
-                <button class="view-btn active" onclick="setView('list')">List View</button>
-                <button class="view-btn" onclick="setView('grid')">Grid View</button>
-            </div>
-
             <div class="songs-list active" id="songsList"></div>
             <div class="songs-grid" id="songsGrid"></div>
         </div>
@@ -633,7 +697,8 @@
                     </div>
                     <button class="btn btn-primary" onclick="login()" style="width: 100%;">Login</button>
                     <p style="margin-top: 15px; text-align: center; color: rgba(255,255,255,0.7); font-size: 0.85rem;">
-                        Don't have an account? <a href="#" onclick="showSignup()" style="color: #a8b8ff; text-decoration: none;">Sign up</a>
+                        Don't have an account? <a href="#" onclick="showSignup()"
+                            style="color: #a8b8ff; text-decoration: none;">Sign up</a>
                     </p>
                 </div>
             </div>
@@ -649,27 +714,33 @@
     </div>
 
     <!-- Music Player -->
-    <div class="player">
+    <div class="player glass">
         <audio id="audioPlayer"></audio>
         <div class="player-content">
-            <div class="album-disk" id="albumDisk">
-                <img id="albumArt" src="https://via.placeholder.com/70" alt="Album Art" />
+            <div class="cd-disc" id="albumDisk">
+                <div class="cd-center">
+                    <img id="albumArt" src="https://via.placeholder.com/140?text=🎵" class="cd-thumbnail"
+                        id="cdThumbnail" alt="Album Art">
+                </div>
+                <div class="cd-hole"></div>
             </div>
-            
+
             <div class="song-info">
                 <h3 id="currentSongTitle">No song playing</h3>
                 <p id="currentSongArtist">Select a song to play</p>
             </div>
-            
+
             <div class="player-controls">
                 <div class="control-buttons">
                     <button class="control-btn" onclick="previousSong()" title="Previous">⏮</button>
-                    <button class="control-btn play-pause" onclick="togglePlay()" id="playPauseBtn" title="Play/Pause">▶</button>
+                    <button class="control-btn play-pause" onclick="togglePlay()" id="playPauseBtn"
+                        title="Play/Pause">▶</button>
                     <button class="control-btn" onclick="stopSong()" title="Stop">⏹</button>
                     <button class="control-btn" onclick="nextSong()" title="Next">⏭</button>
-                    <button class="control-btn" onclick="toggleShuffle()" id="shuffleBtn" style="opacity: 0.5;" title="Shuffle">🔀</button>
+                    <button class="control-btn" onclick="toggleShuffle()" id="shuffleBtn" style="opacity: 0.5;"
+                        title="Shuffle">🔀</button>
                 </div>
-                
+
                 <div class="progress-container">
                     <span class="time" id="currentTime">0:00</span>
                     <div class="progress-bar" onclick="seekTo(event)">
@@ -714,10 +785,10 @@
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
-                
+
                 tab.classList.add('active');
                 document.getElementById(tab.dataset.tab).classList.add('active');
-                
+
                 if (tab.dataset.tab === 'playlists') loadPlaylists();
                 if (tab.dataset.tab === 'history') loadHistory();
                 if (tab.dataset.tab === 'user') checkAuth();
@@ -746,16 +817,16 @@
 
             const listContainer = document.getElementById('songsList');
             const gridContainer = document.getElementById('songsGrid');
-            
+
             listContainer.innerHTML = '<div class="loading">Searching...</div>';
             gridContainer.innerHTML = '<div class="loading">Searching...</div>';
 
             try {
                 const response = await fetch(`${API_BASE}/music/search?query=${encodeURIComponent(query)}`);
                 const songs = await response.json();
-                
+
                 currentPlaylist = songs;
-                
+
                 // Populate List View
                 listContainer.innerHTML = '';
                 songs.forEach((song, index) => {
@@ -818,20 +889,20 @@
 
         // Play Song
         async function playSong(song) {
-            try {                
+            try {
                 const response = await fetch(`${API_BASE}/music/stream/info/${song.video_id}`, {
                     headers: token ? { 'Authorization': `Bearer ${token}` } : {}
                 });
                 const streamInfo = await response.json();
-                
+
                 const audio = document.getElementById('audioPlayer');
                 audio.src = streamInfo.url;
                 audio.play();
-                
+
                 document.getElementById('currentSongTitle').textContent = song.title;
                 document.getElementById('currentSongArtist').textContent = song.artist;
                 document.getElementById('albumArt').src = song.thumbnail || 'https://via.placeholder.com/120';
-                document.getElementById('albumDisk').classList.add('rotating');
+                document.getElementById('albumDisk').classList.add('playing');
                 document.getElementById('playPauseBtn').textContent = '⏸';
                 isPlaying = true;
             } catch (error) {
@@ -844,18 +915,18 @@
             const audio = document.getElementById('audioPlayer');
             const btn = document.getElementById('playPauseBtn');
             const disk = document.getElementById('albumDisk');
-            
+
             if (!audio.src) return;
-            
+
             if (isPlaying) {
                 audio.pause();
                 btn.textContent = '▶';
-                disk.classList.remove('rotating');
+                disk.classList.remove('playing');
                 isPlaying = false;
             } else {
                 audio.play();
                 btn.textContent = '⏸';
-                disk.classList.add('rotating');
+                disk.classList.add('playing');
                 isPlaying = true;
             }
         }
@@ -866,14 +937,14 @@
             audio.pause();
             audio.currentTime = 0;
             document.getElementById('playPauseBtn').textContent = '▶';
-            document.getElementById('albumDisk').classList.remove('rotating');
+            document.getElementById('albumDisk').classList.remove('playing');
             isPlaying = false;
         }
 
         // Next/Previous Song
         function nextSong() {
             if (currentPlaylist.length === 0) return;
-            
+
             if (isShuffle) {
                 currentSongIndex = Math.floor(Math.random() * currentPlaylist.length);
             } else {
@@ -943,22 +1014,22 @@
         async function login() {
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
-            
+
             if (!username || !password) {
                 alert('Please enter username and password');
                 return;
             }
-            
+
             const formData = new FormData();
             formData.append('username', username);
             formData.append('password', password);
-            
+
             try {
                 const response = await fetch(`${API_BASE}/user/login`, {
                     method: 'POST',
                     body: formData
                 });
-                
+
                 if (response.ok) {
                     const data = await response.json();
                     token = data.access_token;
@@ -984,11 +1055,11 @@
                 const response = await fetch(`${API_BASE}/user/me`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
+
                 if (!response.ok) {
                     throw new Error('Failed to load user info');
                 }
-                
+
                 const user = await response.json();
                 document.getElementById('userUsername').textContent = user.username;
                 document.getElementById('userEmail').textContent = user.email;
@@ -1017,12 +1088,12 @@
         async function createPlaylist() {
             const name = document.getElementById('playlistName').value;
             const description = document.getElementById('playlistDescription').value;
-            
+
             if (!name) {
                 alert('Please enter a playlist name');
                 return;
             }
-            
+
             try {
                 const response = await fetch(`${API_BASE}/playlist/create`, {
                     method: 'POST',
@@ -1032,7 +1103,7 @@
                     },
                     body: JSON.stringify({ name, description })
                 });
-                
+
                 if (response.ok) {
                     document.getElementById('playlistName').value = '';
                     document.getElementById('playlistDescription').value = '';
@@ -1052,28 +1123,28 @@
                 document.getElementById('playlistsGrid').innerHTML = '<div class="loading">Please login to view playlists</div>';
                 return;
             }
-            
+
             document.getElementById('playlistsGrid').innerHTML = '<div class="loading">Loading playlists...</div>';
-            
+
             try {
                 const response = await fetch(`${API_BASE}/playlist/my-playlists`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
+
                 if (!response.ok) {
                     throw new Error('Failed to load playlists');
                 }
-                
+
                 const playlists = await response.json();
-                
+
                 const grid = document.getElementById('playlistsGrid');
                 grid.innerHTML = '';
-                
+
                 if (playlists.length === 0) {
                     grid.innerHTML = '<div class="loading">No playlists yet. Create one to get started!</div>';
                     return;
                 }
-                
+
                 playlists.forEach(playlist => {
                     const card = document.createElement('div');
                     card.className = 'card';
@@ -1098,37 +1169,37 @@
                 document.getElementById('historyList').innerHTML = '<div class="loading">Please login to view history</div>';
                 return;
             }
-            
+
             document.getElementById('historyList').innerHTML = '<div class="loading">Loading history...</div>';
-            
+
             try {
                 const response = await fetch(`${API_BASE}/user/history`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
+
                 if (!response.ok) {
                     throw new Error('Failed to load history');
                 }
-                
+
                 const history = await response.json();
-                
+
                 const list = document.getElementById('historyList');
-                
+
                 if (history.length === 0) {
                     list.innerHTML = '<div class="loading">No listening history yet</div>';
                     return;
                 }
-                
+
                 list.innerHTML = '<div class="songs-list active"></div>';
                 const container = list.querySelector('.songs-list');
-                
+
                 for (const item of history.slice(0, 50)) {
                     try {
                         const songResponse = await fetch(`${API_BASE}/music/song/${item.video_id}`);
                         if (!songResponse.ok) continue;
-                        
+
                         const song = await songResponse.json();
-                        
+
                         const listItem = document.createElement('div');
                         listItem.className = 'song-item';
                         listItem.innerHTML = `
@@ -1160,4 +1231,5 @@
         checkAuth();
     </script>
 </body>
+
 </html>
