@@ -24,12 +24,15 @@ COPY . .
 # Create necessary directories
 RUN mkdir -p logs
 
-# Expose port
+# Make startup script executable
+RUN chmod +x start.sh
+
+# Expose port (Cloud Run uses PORT env variable, default to 8000)
 EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
 
-# Run application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run application (use startup script for Cloud Run compatibility)
+CMD ["./start.sh"]
