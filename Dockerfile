@@ -21,7 +21,6 @@ RUN pip uninstall -y yt-dlp && pip install --no-cache-dir --upgrade yt-dlp
 RUN pip install --no-cache-dir --upgrade ytmusicapi
 RUN pip install pydantic[email]
 
-
 # Verify yt-dlp version (should be 2024.12.x or newer)
 RUN python -c "import yt_dlp; print(f'yt-dlp version: {yt_dlp.version.__version__}')"
 # Copy application

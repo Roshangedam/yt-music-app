@@ -14,11 +14,11 @@ steps:
 
   # Build the container image (no cache to ensure latest yt-dlp)
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '--no-cache', '-t', 'gcr.io/$PROJECT_ID/ytmusic-app:$COMMIT_SHA', '.']
+    args: ['build', '--no-cache', '-t', 'gcr.io/$PROJECT_ID/ytmusic-app:$SHORT_SHA', '.']
 
   # Push the container image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/ytmusic-app:$COMMIT_SHA']
+    args: ['push', 'gcr.io/$PROJECT_ID/ytmusic-app:$SHORT_SHA']
 
   # Deploy fresh container to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -28,7 +28,7 @@ steps:
       - 'deploy'
       - 'music-app'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/ytmusic-app:$COMMIT_SHA'
+      - 'gcr.io/$PROJECT_ID/ytmusic-app:$SHORT_SHA'
       - '--region'
       - 'europe-west1'
       - '--platform'
@@ -37,7 +37,7 @@ steps:
       - '--port'
       - '8080'
       - '--set-env-vars'
-      - 'YOUTUBE_API_KEY=${_YOUTUBE_API_KEY},REDIS_URL=${_REDIS_URL},SECRET_KEY=${_SECRET_KEY},PORT=8080'
+      - 'YOUTUBE_API_KEY=AIzaSyC5qJrNAwNr6Eargninbe0O_jNA4CmQx7M,REDIS_URL=redis://localhost:6379,SECRET_KEY=your-secret-key,PORT=8080'
       - '--memory'
       - '1Gi'
       - '--cpu'
@@ -50,13 +50,7 @@ steps:
       - '0'
 
 images:
-  - 'gcr.io/$PROJECT_ID/ytmusic-app:$COMMIT_SHA'
-
-# Substitutions for environment variables
-substitutions:
-  _YOUTUBE_API_KEY: 'AIzaSyC5qJrNAwNr6Eargninbe0O_jNA4CmQx7M'
-  _REDIS_URL: 'redis://your-memorystore-ip:6379'
-  _SECRET_KEY: 'your-secret-key-here'
+  - 'gcr.io/$PROJECT_ID/ytmusic-app:$SHORT_SHA'
 
 options:
   logging: CLOUD_LOGGING_ONLY
