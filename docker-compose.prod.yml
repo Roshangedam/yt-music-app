@@ -13,6 +13,9 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - DEBUG=False
       - CORS_ORIGINS=["https://yourdomain.com"]
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+      - YOUTUBE_API_SERVICE_NAME=youtube
+      - YOUTUBE_API_VERSION=v3
     volumes:
       - ./logs:/app/logs
       - app-data:/app/data

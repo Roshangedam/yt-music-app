@@ -15,6 +15,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Always upgrade to latest versions (YouTube APIs change frequently)
+RUN pip install --no-cache-dir --upgrade yt-dlp ytmusicapi
+RUN pip install pydantic[email]
 # Copy application
 COPY . .
 
