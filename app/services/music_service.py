@@ -14,23 +14,32 @@ logger = logging.getLogger(__name__)
 
 class MusicService:
     """Service layer for music operations"""
-    
-    def search_songs(self, query: str, limit: int = 20) -> List[Dict]:
+
+    def search_songs(self, query: str, limit: int = 20, continuation: Optional[str] = None) -> Dict:
         """
-        Search for songs using YouTube Music API
+        Search for songs using YouTube Music API with pagination support
         Results are cached in Redis for performance
+
+        Args:
+            query: Search query string
+            limit: Number of results to return
+            continuation: Continuation token for pagination
+
+        Returns:
+            Dict with 'results' and 'continuation' keys
         """
-        cache_key = f"search:{query}:{limit}"
-        
-        # Check cache first
-        cached_results = cache.get_cache(cache_key)
-        if cached_results:
-            logger.info(f"Cache hit for search: {query}")
-            return cached_results
-        
+        cache_key = f"search:{query}:{limit}:{continuation or 'initial'}"
+
+        # Check cache first (only for initial search, not continuations)
+        if not continuation:
+            cached_results = cache.get_cache(cache_key)
+            if cached_results:
+                logger.info(f"Cache hit for search: {query}")
+                return cached_results
+
         # Fetch from YTMusic API
-        results = ytmusic_client.search(query, limit)
-        
+        results, next_continuation = ytmusic_client.search(query, limit, continuation)
+
         # Format results
         formatted_results = []
         for result in results:
@@ -42,11 +51,17 @@ class MusicService:
                 "duration": result.get("duration_seconds"),
                 "thumbnail": result.get("thumbnails", [{}])[-1].get("url") if result.get("thumbnails") else None,
             })
-        
-        # Cache results
-        cache.set_cache(cache_key, formatted_results, settings.CACHE_EXPIRE_SECONDS)
-        
-        return formatted_results
+
+        response_data = {
+            "results": formatted_results,
+            "continuation": next_continuation
+        }
+
+        # Cache results (only initial search)
+        if not continuation:
+            cache.set_cache(cache_key, response_data, settings.CACHE_EXPIRE_SECONDS)
+
+        return response_data
     
     def get_song_details(self, video_id: str) -> Optional[Dict]:
         """

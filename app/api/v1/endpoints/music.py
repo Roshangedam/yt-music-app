@@ -15,20 +15,27 @@ import logging
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-@router.get("/search", response_model=List[SongInfo])
+@router.get("/search")
 async def search_songs(
     query: str = Query(..., description="Search query"),
     limit: int = Query(20, ge=1, le=50, description="Number of results"),
+    continuation: Optional[str] = Query(None, description="Continuation token for pagination"),
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user)
 ):
     """
-    Search for songs on YouTube Music
+    Search for songs on YouTube Music with pagination support
     Available to all users (authenticated and anonymous)
+
+    Returns:
+        {
+            "results": List[SongInfo],
+            "continuation": Optional[str]  # Token for next page
+        }
     """
     try:
-        results = music_service.search_songs(query, limit)
-        return results
+        response = music_service.search_songs(query, limit, continuation)
+        return response
     except Exception as e:
         logger.error(f"Search error: {e}")
         raise HTTPException(status_code=500, detail="Search failed")

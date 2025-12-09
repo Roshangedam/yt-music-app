@@ -3,25 +3,79 @@
 # ============================================================================
 from ytmusicapi import YTMusic
 import yt_dlp
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 import logging
 
 logger = logging.getLogger(__name__)
 
 class YTMusicClient:
     """Wrapper for YTMusic API and yt_dlp for streaming"""
-    
+
     def __init__(self):
         self.ytmusic = YTMusic()
-    
-    def search(self, query: str, limit: int = 20) -> List[Dict]:
-        """Search for songs on YouTube Music"""
+
+    def search(self, query: str, limit: int = 20, continuation: Optional[str] = None) -> Tuple[List[Dict], Optional[str]]:
+        """
+        Search for songs on YouTube Music with pagination support
+
+        Note: YTMusic API has limitations - we fetch larger batches and simulate pagination
+
+        Args:
+            query: Search query string
+            limit: Number of results to return (default: 20)
+            continuation: Page number for pagination (as string)
+
+        Returns:
+            Tuple of (results list, next continuation token)
+        """
         try:
-            results = self.ytmusic.search(query, filter="songs", limit=limit)
-            return results
+            # YTMusic API doesn't expose continuation tokens easily
+            # So we'll use a workaround: fetch larger batches and paginate client-side
+            # continuation will be the page number
+
+            page = 0
+            if continuation:
+                try:
+                    page = int(continuation)
+                except:
+                    page = 0
+
+            # Fetch a large batch (max 50 per YTMusic API call)
+            # For pagination, we'll make multiple calls if needed
+            batch_size = 50
+            start_index = page * limit
+
+            # Calculate how many results we need to fetch
+            total_needed = start_index + limit
+            num_batches = (total_needed + batch_size - 1) // batch_size
+
+            all_results = []
+            for batch_num in range(num_batches):
+                batch_results = self.ytmusic.search(query, filter="songs", limit=batch_size)
+                all_results.extend(batch_results)
+
+                # If we got less than batch_size, no more results available
+                if len(batch_results) < batch_size:
+                    break
+
+            # Slice the results for this page
+            end_index = start_index + limit
+            results = all_results[start_index:end_index]
+
+            # Determine if there are more results
+            # If we got exactly what we asked for and there might be more
+            next_continuation = None
+            if len(results) == limit and len(all_results) >= end_index:
+                # There might be more results
+                next_continuation = str(page + 1)
+
+            return results, next_continuation
+
         except Exception as e:
             logger.error(f"YTMusic search error: {e}")
-            return []
+            import traceback
+            logger.error(traceback.format_exc())
+            return [], None
     
     def get_song_details(self, video_id: str) -> Optional[Dict]:
         """Get detailed information about a song"""

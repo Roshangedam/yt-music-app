@@ -685,6 +685,34 @@
             font-size: 0.9rem;
         }
 
+        .loading-spinner {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .loading-spinner i {
+            font-size: 1.5rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .end-of-results {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.85rem;
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .header-top {
@@ -921,7 +949,7 @@
                 <div class="header-right">
                     <div class="search-container">
                         <input type="text" id="searchInput" placeholder="Search for songs, artists, albums..." />
-                        <button onclick="searchSongs()"><i class="fas fa-search"></i> Search</button>
+                        <button onclick="searchSongs()"><i class="fas fa-search"></i> </button>
                     </div>
                     <div class="view-toggle">
                         <button class="view-btn active" onclick="setView('list')"><i class="fas fa-list"></i> List</button>
@@ -1053,6 +1081,13 @@
         let isShuffle = false;
         let currentView = 'list';
 
+        // Infinite Scroll State
+        let currentSearchQuery = '';
+        let currentContinuation = null;
+        let isLoadingMore = false;
+        let hasMoreResults = true;
+        const SONGS_PER_PAGE = 20;
+
         // Tab Navigation
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -1074,49 +1109,205 @@
             document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
 
+            const listView = document.getElementById('songsList');
+            const gridView = document.getElementById('songsGrid');
+
             if (view === 'list') {
-                document.getElementById('songsList').classList.add('active');
-                document.getElementById('songsGrid').classList.remove('active');
+                listView.classList.add('active');
+                gridView.classList.remove('active');
             } else {
-                document.getElementById('songsList').classList.remove('active');
-                document.getElementById('songsGrid').classList.add('active');
+                listView.classList.remove('active');
+                gridView.classList.add('active');
             }
+
+            // Scroll to top when switching views
+            document.querySelector('.container').scrollTop = 0;
         }
 
         // Search Songs
         async function searchSongs() {
-            const query = document.getElementById('searchInput').value;
+            const query = document.getElementById('searchInput').value.trim();
             if (!query) return;
+
+            // Reset state for new search
+            currentSearchQuery = query;
+            currentContinuation = null;
+            hasMoreResults = true;
+            isLoadingMore = false;
 
             const listContainer = document.getElementById('songsList');
             const gridContainer = document.getElementById('songsGrid');
 
-            listContainer.innerHTML = '<div class="loading">Searching...</div>';
-            gridContainer.innerHTML = '<div class="loading">Searching...</div>';
+            listContainer.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Searching...</div>';
+            gridContainer.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Searching...</div>';
 
             try {
-                const response = await fetch(`${API_BASE}/music/search?query=${encodeURIComponent(query)}`);
-                const songs = await response.json();
+                // Fetch initial results with pagination support
+                const response = await fetch(`${API_BASE}/music/search?query=${encodeURIComponent(query)}&limit=${SONGS_PER_PAGE}`);
+                const data = await response.json();
 
+                const songs = data.results || data; // Handle both old and new response format
+                currentContinuation = data.continuation || null;
                 currentPlaylist = songs;
 
-                // Populate List View
-                listContainer.innerHTML = '';
-                songs.forEach((song, index) => {
-                    const listItem = createSongListItem(song, index);
-                    listContainer.appendChild(listItem);
+                console.log('Search completed:', {
+                    resultsCount: songs.length,
+                    hasContinuation: !!currentContinuation,
+                    continuationToken: currentContinuation ? 'Available' : 'None'
                 });
 
-                // Populate Grid View
+                // Clear containers
+                listContainer.innerHTML = '';
                 gridContainer.innerHTML = '';
-                songs.forEach((song, index) => {
-                    const card = createSongCard(song, index);
-                    gridContainer.appendChild(card);
-                });
+
+                // Display results
+                displaySongs(songs);
+
+                // Add loading indicator if more results available
+                if (currentContinuation) {
+                    addLoadingIndicator();
+                } else {
+                    hasMoreResults = false;
+                    addEndMessage();
+                }
+
             } catch (error) {
                 console.error('Search error:', error);
                 listContainer.innerHTML = '<div class="loading">Error loading songs. Please try again.</div>';
                 gridContainer.innerHTML = '<div class="loading">Error loading songs. Please try again.</div>';
+            }
+        }
+
+        // Display songs in list and grid
+        function displaySongs(songs) {
+            const listContainer = document.getElementById('songsList');
+            const gridContainer = document.getElementById('songsGrid');
+
+            // Remove existing loading indicators
+            const existingIndicators = document.querySelectorAll('#loadingIndicator, .end-of-results');
+            existingIndicators.forEach(ind => ind.remove());
+
+            const currentIndex = currentPlaylist.length - songs.length;
+
+            // Add songs to view
+            songs.forEach((song, index) => {
+                const globalIndex = currentIndex + index;
+
+                // Add to list view
+                const listItem = createSongListItem(song, globalIndex);
+                listContainer.appendChild(listItem);
+
+                // Add to grid view
+                const card = createSongCard(song, globalIndex);
+                gridContainer.appendChild(card);
+            });
+
+            console.log(`Displayed ${songs.length} songs. Total in playlist: ${currentPlaylist.length}`);
+        }
+
+        // Add loading indicator
+        function addLoadingIndicator() {
+            const listContainer = document.getElementById('songsList');
+            const gridContainer = document.getElementById('songsGrid');
+
+            // Remove old indicators first
+            const oldIndicators = document.querySelectorAll('#loadingIndicator, .end-of-results');
+            oldIndicators.forEach(ind => ind.remove());
+
+            const loadingDivList = document.createElement('div');
+            loadingDivList.id = 'loadingIndicator';
+            loadingDivList.className = 'loading-spinner';
+            loadingDivList.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scroll for more...';
+            loadingDivList.style.display = 'none';
+
+            const loadingDivGrid = document.createElement('div');
+            loadingDivGrid.id = 'loadingIndicator';
+            loadingDivGrid.className = 'loading-spinner';
+            loadingDivGrid.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scroll for more...';
+            loadingDivGrid.style.display = 'none';
+
+            listContainer.appendChild(loadingDivList);
+            gridContainer.appendChild(loadingDivGrid);
+        }
+
+        // Add end message
+        function addEndMessage() {
+            const listContainer = document.getElementById('songsList');
+            const gridContainer = document.getElementById('songsGrid');
+
+            // Remove old indicators first
+            const oldIndicators = document.querySelectorAll('#loadingIndicator, .end-of-results');
+            oldIndicators.forEach(ind => ind.remove());
+
+            const endDivList = document.createElement('div');
+            endDivList.className = 'end-of-results';
+            endDivList.innerHTML = '<i class="fas fa-check-circle"></i> All results loaded';
+
+            const endDivGrid = document.createElement('div');
+            endDivGrid.className = 'end-of-results';
+            endDivGrid.innerHTML = '<i class="fas fa-check-circle"></i> All results loaded';
+
+            listContainer.appendChild(endDivList);
+            gridContainer.appendChild(endDivGrid);
+        }
+
+        // Load more songs when scrolling
+        async function loadMoreSongs() {
+            if (isLoadingMore || !hasMoreResults || !currentContinuation || !currentSearchQuery) {
+                return;
+            }
+
+            console.log('Loading more songs...', {
+                currentPlaylist: currentPlaylist.length,
+                hasContinuation: !!currentContinuation
+            });
+
+            isLoadingMore = true;
+
+            // Show loading indicator
+            const indicators = document.querySelectorAll('#loadingIndicator');
+            indicators.forEach(indicator => {
+                indicator.style.display = 'block';
+                indicator.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading more...';
+            });
+
+            try {
+                // Fetch next page using continuation token
+                const response = await fetch(
+                    `${API_BASE}/music/search?query=${encodeURIComponent(currentSearchQuery)}&limit=${SONGS_PER_PAGE}&continuation=${encodeURIComponent(currentContinuation)}`
+                );
+                const data = await response.json();
+
+                const newSongs = data.results || data;
+                currentContinuation = data.continuation || null;
+
+                // Add to playlist
+                currentPlaylist = currentPlaylist.concat(newSongs);
+
+                // Display new songs
+                displaySongs(newSongs);
+
+                console.log('Loaded more songs:', {
+                    newSongsCount: newSongs.length,
+                    totalNow: currentPlaylist.length,
+                    hasMore: !!currentContinuation
+                });
+
+                // Update state
+                if (currentContinuation) {
+                    addLoadingIndicator();
+                } else {
+                    hasMoreResults = false;
+                    addEndMessage();
+                }
+
+            } catch (error) {
+                console.error('Error loading more songs:', error);
+                indicators.forEach(indicator => {
+                    indicator.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error loading more';
+                });
+            } finally {
+                isLoadingMore = false;
             }
         }
 
@@ -1498,6 +1689,25 @@
         // Search on Enter
         document.getElementById('searchInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') searchSongs();
+        });
+
+        // Infinite Scroll - Detect when user scrolls near bottom
+        const container = document.querySelector('.container');
+        let scrollTimeout;
+
+        container.addEventListener('scroll', () => {
+            // Debounce scroll event
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                const scrollTop = container.scrollTop;
+                const scrollHeight = container.scrollHeight;
+                const clientHeight = container.clientHeight;
+
+                // Load more when user is 300px from bottom
+                if (scrollHeight - scrollTop - clientHeight < 300) {
+                    loadMoreSongs();
+                }
+            }, 100);
         });
 
         // Initialize
