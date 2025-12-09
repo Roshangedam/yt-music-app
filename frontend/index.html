@@ -1650,13 +1650,9 @@
         // Play Song
         async function playSong(song) {
             try {
-                const response = await fetch(`${API_BASE}/music/stream/info/${song.video_id}`, {
-                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-                });
-                const streamInfo = await response.json();
-
+                // Use proxy endpoint to avoid IP-locked 403 errors
                 const audio = document.getElementById('audioPlayer');
-                audio.src = streamInfo.url;
+                audio.src = `${API_BASE}/music/stream/proxy/${song.video_id}`;
                 audio.play();
 
                 document.getElementById('currentSongTitle').textContent = song.title;
