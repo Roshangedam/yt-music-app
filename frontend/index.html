@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Music Streaming</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -12,60 +13,94 @@
             box-sizing: border-box;
         }
 
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            background-attachment: fixed;
+            height: 100%;
             color: #fff;
-            overflow-x: hidden;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        .container {
+        /* Header - Sticky at top */
+        .header {
+            flex-shrink: 0;
+            background: rgba(102, 126, 234, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 20px;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-content {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
-            padding-bottom: 180px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        /* header */
-        .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
+        .header-top {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            padding: 10px 20px;
-            z-index: 10000;
+            gap: 16px;
             flex-wrap: wrap;
-            gap: 20px;
         }
 
         .header-right {
             display: flex;
             align-items: center;
             gap: 10px;
+            flex: 1;
+            justify-content: flex-end;
+        }
+
+        /* Main Container */
+        .container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 20px;
+            min-height: 0;
+        }
+
+        .content-wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            height: 100%;
         }
 
         /* Tabs */
         .tabs {
             display: flex;
-            gap: 10px;
-            z-index: 10000;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         .tab {
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.25);
-            padding: 10px 24px;
+            padding: 8px 20px;
             border-radius: 50px;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 500;
             color: rgba(255, 255, 255, 0.8);
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .tab:hover {
@@ -77,6 +112,10 @@
             background: rgba(255, 255, 255, 0.35);
             color: #fff;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .tab i {
+            font-size: 0.85rem;
         }
 
         /* Content */
@@ -114,13 +153,14 @@
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(10px);
             border-radius: 50px;
-            padding: 4px 24px;
+            padding: 4px 20px;
             border: 1px solid rgba(255, 255, 255, 0.25);
             display: flex;
             gap: 10px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            z-index: 10000;
-            width: 520px;
+            flex: 1;
+            max-width: 500px;
+            min-width: 200px;
         }
 
         .search-container input {
@@ -128,8 +168,9 @@
             background: transparent;
             border: none;
             color: #fff;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             outline: none;
+            min-width: 0;
         }
 
         .search-container input::placeholder {
@@ -140,16 +181,25 @@
             background: rgba(255, 255, 255, 0.25);
             border: none;
             color: #fff;
-            padding: 8px 24px;
+            padding: 8px 20px;
             border-radius: 50px;
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 500;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .search-container button:hover {
             background: rgba(255, 255, 255, 0.35);
             transform: scale(1.02);
+        }
+
+        .search-container button i {
+            font-size: 0.8rem;
         }
 
         /* View Toggle */
@@ -167,8 +217,11 @@
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .view-btn:hover,
@@ -177,10 +230,13 @@
             color: #fff;
         }
 
+        .view-btn i {
+            font-size: 0.95rem;
+        }
+
         /* List View */
         .songs-list {
             display: none;
-            margin: 89px 75px 70px 85px;
         }
 
         .songs-list.active {
@@ -249,7 +305,7 @@
             height: 36px;
             border-radius: 50%;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.85rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -262,15 +318,25 @@
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
+        .song-item-play i {
+            margin-left: 2px;
+        }
+
         /* Grid View */
         .songs-grid {
             display: none;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 16px;
         }
 
         .songs-grid.active {
             display: grid;
+        }
+
+        #playlistsGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
         }
 
         .card {
@@ -331,6 +397,9 @@
             transition: all 0.3s ease;
             font-size: 0.8rem;
             font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .btn:hover {
@@ -346,15 +415,17 @@
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
 
-        /* Player */
+        .btn i {
+            font-size: 0.85rem;
+        }
+
+        /* Player - Sticky at bottom */
         .player {
-            position: fixed;
-            bottom: 10px;
-            left: 20px;
-            right: 20px;
+            flex-shrink: 0;
+            background: rgba(102, 126, 234, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
             padding: 12px 20px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.3);
             z-index: 1000;
         }
@@ -483,7 +554,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .control-btn:hover {
@@ -495,12 +566,20 @@
             width: 44px;
             height: 44px;
             background: linear-gradient(135deg, #667eea, #764ba2);
-            font-size: 1.1rem;
+            font-size: 1rem;
             border: none;
         }
 
         .control-btn.play-pause:hover {
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .control-btn i {
+            pointer-events: none;
+        }
+
+        .control-btn.play-pause i {
+            margin-left: 2px;
         }
 
         /* Progress Bar */
@@ -607,22 +686,149 @@
         }
 
         /* Responsive */
-        @media (max-width: 768px) {
-            .player-content {
-                flex-wrap: wrap;
+        @media (max-width: 1024px) {
+            .header-top {
+                flex-direction: column;
+                align-items: stretch;
             }
 
-            .album-disk {
-                width: 56px;
-                height: 56px;
+            .tabs {
+                justify-content: center;
             }
 
-            .songs-grid {
-                grid-template-columns: 1fr;
+            .header-right {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-container {
+                max-width: 100%;
             }
 
             .view-toggle {
                 justify-content: center;
+            }
+
+            .songs-grid,
+            #playlistsGrid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 10px 15px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            .tabs {
+                gap: 6px;
+            }
+
+            .tab {
+                padding: 6px 14px;
+                font-size: 0.85rem;
+            }
+
+            .search-container {
+                padding: 4px 15px;
+            }
+
+            .search-container input {
+                font-size: 0.85rem;
+            }
+
+            .search-container button {
+                padding: 6px 16px;
+                font-size: 0.8rem;
+            }
+
+            .songs-grid,
+            #playlistsGrid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .card {
+                padding: 12px;
+            }
+
+            .card img {
+                height: 140px;
+            }
+
+            .song-item {
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .song-item img {
+                width: 45px;
+                height: 45px;
+            }
+
+            .song-item-title {
+                font-size: 0.9rem;
+            }
+
+            .song-item-artist {
+                font-size: 0.75rem;
+            }
+
+            .song-item-duration {
+                font-size: 0.75rem;
+            }
+
+            .song-item-play {
+                width: 32px;
+                height: 32px;
+                font-size: 0.9rem;
+            }
+
+            /* Player responsive */
+            .player {
+                padding: 10px 15px;
+            }
+
+            .player-content {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            .cd-disc {
+                width: 120px;
+                height: 120px;
+            }
+
+            .cd-center {
+                width: 85px;
+                height: 85px;
+            }
+
+            .cd-hole {
+                width: 30px;
+                height: 30px;
+            }
+
+            .song-info {
+                flex: 1;
+                min-width: 120px;
+            }
+
+            .song-info h3 {
+                font-size: 0.85rem;
+            }
+
+            .song-info p {
+                font-size: 0.7rem;
+            }
+
+            .player-controls {
+                width: 100%;
+                min-width: auto;
             }
 
             .control-buttons {
@@ -638,85 +844,150 @@
             .control-btn.play-pause {
                 width: 40px;
                 height: 40px;
+                font-size: 1rem;
+            }
+
+            .time {
+                font-size: 0.65rem;
+                min-width: 35px;
+            }
+
+            .modal-content {
+                padding: 20px;
+                max-width: 90%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-content {
+                gap: 8px;
+            }
+
+            .tabs {
+                gap: 4px;
+            }
+
+            .tab {
+                padding: 5px 10px;
+                font-size: 0.8rem;
+            }
+
+            .view-btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+
+            .cd-disc {
+                width: 80px;
+                height: 80px;
+            }
+
+            .cd-center {
+                width: 55px;
+                height: 55px;
+            }
+
+            .cd-hole {
+                width: 20px;
+                height: 20px;
+            }
+
+            .control-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 0.75rem;
+            }
+
+            .control-btn.play-pause {
+                width: 36px;
+                height: 36px;
+                font-size: 0.9rem;
             }
         }
     </style>
 </head>
 
 <body>
+    <!-- Sticky Header -->
     <div class="header">
-        <div class="tabs">
-            <div class="tab glass active" data-tab="songs">Songs</div>
-            <div class="tab glass" data-tab="playlists">Playlists</div>
-            <div class="tab glass" data-tab="history">History</div>
-            <div class="tab glass" data-tab="user">Account</div>
-        </div>
-        <div class="header-right">
-            <div class="search-container glass">
-                <input type="text" id="searchInput" placeholder="Search for songs, artists, albums..." />
-                <button onclick="searchSongs()">Search</button>
-            </div>
-            <div class="view-toggle">
-                <button class="glass view-btn active" onclick="setView('list')">☷</button>
-                <button class="glass view-btn" onclick="setView('grid')">⊞</button>
+        <div class="header-content">
+            <div class="header-top">
+                <div class="tabs">
+                    <div class="tab active" data-tab="songs"><i class="fas fa-music"></i> Songs</div>
+                    <div class="tab" data-tab="playlists"><i class="fas fa-list-ul"></i> Playlists</div>
+                    <div class="tab" data-tab="history"><i class="fas fa-history"></i> History</div>
+                    <div class="tab" data-tab="user"><i class="fas fa-user"></i> Account</div>
+                </div>
+                <div class="header-right">
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="Search for songs, artists, albums..." />
+                        <button onclick="searchSongs()"><i class="fas fa-search"></i> Search</button>
+                    </div>
+                    <div class="view-toggle">
+                        <button class="view-btn active" onclick="setView('list')"><i class="fas fa-list"></i> List</button>
+                        <button class="view-btn" onclick="setView('grid')"><i class="fas fa-th"></i> Grid</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Main Content Area -->
     <div class="container">
-
-        <!-- Songs Tab -->
-        <div class="content active" id="songs">
-            <div class="songs-list active" id="songsList"></div>
-            <div class="songs-grid" id="songsGrid"></div>
-        </div>
-
-        <!-- Playlists Tab -->
-        <div class="content" id="playlists">
-            <button class="btn btn-primary" onclick="showCreatePlaylistModal()" style="margin-bottom: 20px;">
-                Create Playlist
-            </button>
-            <div class="songs-grid" id="playlistsGrid"></div>
-        </div>
-
-        <!-- History Tab -->
-        <div class="content" id="history">
-            <div id="historyList"></div>
-        </div>
-
-        <!-- User/Login Tab -->
-        <div class="content" id="user">
-            <div id="loginSection">
-                <div class="card" style="max-width: 400px; margin: 0 auto;">
-                    <h2 style="margin-bottom: 20px;">Login</h2>
-                    <div class="form-group">
-                        <label>Username</label>
-                        <input type="text" id="loginUsername" />
-                    </div>
-                    <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" id="loginPassword" />
-                    </div>
-                    <button class="btn btn-primary" onclick="login()" style="width: 100%;">Login</button>
-                    <p style="margin-top: 15px; text-align: center; color: rgba(255,255,255,0.7); font-size: 0.85rem;">
-                        Don't have an account? <a href="#" onclick="showSignup()"
-                            style="color: #a8b8ff; text-decoration: none;">Sign up</a>
-                    </p>
-                </div>
+        <div class="content-wrapper">
+            <!-- Songs Tab -->
+            <div class="content active" id="songs">
+                <div class="songs-list active" id="songsList"></div>
+                <div class="songs-grid" id="songsGrid"></div>
             </div>
-            <div id="userInfo" style="display: none;">
-                <div class="card" style="max-width: 400px; margin: 0 auto;">
-                    <h2 style="margin-bottom: 20px;">Account Info</h2>
-                    <p style="margin-bottom: 10px;"><strong>Username:</strong> <span id="userUsername"></span></p>
-                    <p style="margin-bottom: 20px;"><strong>Email:</strong> <span id="userEmail"></span></p>
-                    <button class="btn" onclick="logout()" style="width: 100%;">Logout</button>
+
+            <!-- Playlists Tab -->
+            <div class="content" id="playlists">
+                <button class="btn btn-primary" onclick="showCreatePlaylistModal()" style="margin-bottom: 20px;">
+                    <i class="fas fa-plus"></i> Create Playlist
+                </button>
+                <div id="playlistsGrid"></div>
+            </div>
+
+            <!-- History Tab -->
+            <div class="content" id="history">
+                <div id="historyList"></div>
+            </div>
+
+            <!-- User/Login Tab -->
+            <div class="content" id="user">
+                <div id="loginSection">
+                    <div class="card" style="max-width: 400px; margin: 0 auto;">
+                        <h2 style="margin-bottom: 20px;">Login</h2>
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" id="loginUsername" />
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="loginPassword" />
+                        </div>
+                        <button class="btn btn-primary" onclick="login()" style="width: 100%;">Login</button>
+                        <p style="margin-top: 15px; text-align: center; color: rgba(255,255,255,0.7); font-size: 0.85rem;">
+                            Don't have an account? <a href="#" onclick="showSignup()"
+                                style="color: #a8b8ff; text-decoration: none;">Sign up</a>
+                        </p>
+                    </div>
+                </div>
+                <div id="userInfo" style="display: none;">
+                    <div class="card" style="max-width: 400px; margin: 0 auto;">
+                        <h2 style="margin-bottom: 20px;">Account Info</h2>
+                        <p style="margin-bottom: 10px;"><strong>Username:</strong> <span id="userUsername"></span></p>
+                        <p style="margin-bottom: 20px;"><strong>Email:</strong> <span id="userEmail"></span></p>
+                        <button class="btn" onclick="logout()" style="width: 100%;">Logout</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Music Player -->
-    <div class="player glass">
+    <!-- Sticky Music Player -->
+    <div class="player">
         <audio id="audioPlayer"></audio>
         <div class="player-content">
             <div class="cd-disc" id="albumDisk">
@@ -734,13 +1005,13 @@
 
             <div class="player-controls">
                 <div class="control-buttons">
-                    <button class="control-btn" onclick="previousSong()" title="Previous">⏮</button>
+                    <button class="control-btn" onclick="previousSong()" title="Previous"><i class="fas fa-step-backward"></i></button>
                     <button class="control-btn play-pause" onclick="togglePlay()" id="playPauseBtn"
-                        title="Play/Pause">▶</button>
-                    <button class="control-btn" onclick="stopSong()" title="Stop">⏹</button>
-                    <button class="control-btn" onclick="nextSong()" title="Next">⏭</button>
+                        title="Play/Pause"><i class="fas fa-play"></i></button>
+                    <button class="control-btn" onclick="stopSong()" title="Stop"><i class="fas fa-stop"></i></button>
+                    <button class="control-btn" onclick="nextSong()" title="Next"><i class="fas fa-step-forward"></i></button>
                     <button class="control-btn" onclick="toggleShuffle()" id="shuffleBtn" style="opacity: 0.5;"
-                        title="Shuffle">🔀</button>
+                        title="Shuffle"><i class="fas fa-random"></i></button>
                 </div>
 
                 <div class="progress-container">
@@ -860,7 +1131,7 @@
                     <div class="song-item-artist">${song.artist}${song.album ? ' • ' + song.album : ''}</div>
                 </div>
                 <span class="song-item-duration">${formatDuration(song.duration)}</span>
-                <button class="song-item-play" onclick='playSongByIndex(${index})'>▶</button>
+                <button class="song-item-play" onclick='playSongByIndex(${index})'><i class="fas fa-play"></i></button>
             `;
             return item;
         }
@@ -876,8 +1147,8 @@
                 ${song.album ? `<p>${song.album}</p>` : ''}
                 <p>${formatDuration(song.duration)}</p>
                 <div class="card-actions">
-                    <button class="btn btn-primary" onclick='playSongByIndex(${index})'>Play</button>
-                    ${token ? `<button class="btn" onclick='addToPlaylist("${song.video_id}")'>Add to Playlist</button>` : ''}
+                    <button class="btn btn-primary" onclick='playSongByIndex(${index})'><i class="fas fa-play"></i> Play</button>
+                    ${token ? `<button class="btn" onclick='addToPlaylist("${song.video_id}")'><i class="fas fa-plus"></i> Add to Playlist</button>` : ''}
                 </div>
             `;
             return card;
@@ -905,7 +1176,7 @@
                 document.getElementById('currentSongArtist').textContent = song.artist;
                 document.getElementById('albumArt').src = song.thumbnail || 'https://via.placeholder.com/120';
                 document.getElementById('albumDisk').classList.add('playing');
-                document.getElementById('playPauseBtn').textContent = '⏸';
+                document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
                 isPlaying = true;
             } catch (error) {
                 alert('Error playing song');
@@ -922,12 +1193,12 @@
 
             if (isPlaying) {
                 audio.pause();
-                btn.textContent = '▶';
+                btn.innerHTML = '<i class="fas fa-play"></i>';
                 disk.classList.remove('playing');
                 isPlaying = false;
             } else {
                 audio.play();
-                btn.textContent = '⏸';
+                btn.innerHTML = '<i class="fas fa-pause"></i>';
                 disk.classList.add('playing');
                 isPlaying = true;
             }
@@ -938,7 +1209,7 @@
             const audio = document.getElementById('audioPlayer');
             audio.pause();
             audio.currentTime = 0;
-            document.getElementById('playPauseBtn').textContent = '▶';
+            document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
             document.getElementById('albumDisk').classList.remove('playing');
             isPlaying = false;
         }
@@ -1211,7 +1482,7 @@
                                 <div class="song-item-artist">${song.artist} • ${new Date(item.played_at).toLocaleString()}</div>
                             </div>
                             <span class="song-item-duration">${formatDuration(song.duration)}</span>
-                            <button class="song-item-play" onclick='playSong(${JSON.stringify(song).replace(/'/g, "\\'")})'>▶</button>
+                            <button class="song-item-play" onclick='playSong(${JSON.stringify(song).replace(/'/g, "\\'")})'><i class="fas fa-play"></i></button>
                         `;
                         container.appendChild(listItem);
                     } catch (err) {
