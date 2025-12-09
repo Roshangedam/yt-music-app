@@ -3,8 +3,10 @@
 # FILE: app/api/v1/endpoints/music.py
 # ============================================================================
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
+import httpx
 from app.db.session import get_db
 from app.api.dependencies import get_current_user
 from app.schemas.music import SongInfo, StreamInfo
@@ -76,6 +78,39 @@ async def get_stream_info(
     
     return stream_info
 
+@router.get("/stream/proxy/{video_id}")
+async def proxy_stream(
+    video_id: str,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user)
+):
+    """
+    Proxy stream to avoid IP-locked URLs (403 errors)
+    """
+    stream_info = music_service.get_stream_info(video_id)
+    if not stream_info:
+        raise HTTPException(status_code=404, detail="Stream info not found")
+
+    # Track playback
+    user_id = current_user.id if current_user else None
+    music_service.track_playback(db, video_id, user_id)
+
+    # Proxy the stream
+    async def stream_generator():
+        async with httpx.AsyncClient() as client:
+            async with client.stream("GET", stream_info["url"]) as response:
+                async for chunk in response.aiter_bytes(chunk_size=8192):
+                    yield chunk
+
+    return StreamingResponse(
+        stream_generator(),
+        media_type="audio/webm",
+        headers={
+            "Accept-Ranges": "bytes",
+            "Content-Disposition": f'inline; filename="{video_id}.webm"'
+        }
+    )
+
 @router.post("/play/{video_id}")
 async def track_play(
     video_id: str,
@@ -88,7 +123,7 @@ async def track_play(
     """
     user_id = current_user.id if current_user else None
     music_service.track_playback(db, video_id, user_id)
-    
+
     return {
         "message": "Playback tracked" if current_user else "Playback not saved (anonymous user)",
         "video_id": video_id
