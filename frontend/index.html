@@ -34,22 +34,24 @@
             left: 0;
             width: 100%;
             display: flex;
-            justify-content: space-around;
+            justify-content: center;
             align-items: center;
             padding: 10px 20px;
             z-index: 10000;
             flex-wrap: wrap;
+            gap: 20px;
         }
+
         .header-right {
             display: flex;
             align-items: center;
             gap: 10px;
         }
+
         /* Tabs */
-        .tabs {            
+        .tabs {
             display: flex;
             gap: 10px;
-            margin-bottom: 30px;            
             z-index: 10000;
         }
 
@@ -113,12 +115,12 @@
             backdrop-filter: blur(10px);
             border-radius: 50px;
             padding: 4px 24px;
-            margin-bottom: 20px;
             border: 1px solid rgba(255, 255, 255, 0.25);
             display: flex;
             gap: 10px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             z-index: 10000;
+            width: 520px;
         }
 
         .search-container input {
@@ -154,7 +156,6 @@
         .view-toggle {
             display: flex;
             gap: 8px;
-            margin-bottom: 20px;
             justify-content: flex-end;
         }
 
@@ -643,25 +644,26 @@
 </head>
 
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="tabs">
-                <div class="tab glass active" data-tab="songs">Songs</div>
-                <div class="tab glass" data-tab="playlists">Playlists</div>
-                <div class="tab glass" data-tab="history">History</div>
-                <div class="tab glass" data-tab="user">Account</div>
+    <div class="header">
+        <div class="tabs">
+            <div class="tab glass active" data-tab="songs">Songs</div>
+            <div class="tab glass" data-tab="playlists">Playlists</div>
+            <div class="tab glass" data-tab="history">History</div>
+            <div class="tab glass" data-tab="user">Account</div>
+        </div>
+        <div class="header-right">
+            <div class="search-container glass">
+                <input type="text" id="searchInput" placeholder="Search for songs, artists, albums..." />
+                <button onclick="searchSongs()">Search</button>
             </div>
-            <div class="header-right">
-                <div class="search-container glass">
-                    <input type="text" id="searchInput" placeholder="Search for songs, artists, albums..." />
-                    <button onclick="searchSongs()">Search</button>
-                </div>
-                <div class="view-toggle">
-                    <button class="glass view-btn active" onclick="setView('list')">List View</button>
-                    <button class="glass view-btn" onclick="setView('grid')">Grid View</button>
-                </div>
+            <div class="view-toggle">
+                <button class="glass view-btn active" onclick="setView('list')">☷</button>
+                <button class="glass view-btn" onclick="setView('grid')">⊞</button>
             </div>
         </div>
+    </div>
+
+    <div class="container">
 
         <!-- Songs Tab -->
         <div class="content active" id="songs">
