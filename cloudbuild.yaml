@@ -40,7 +40,7 @@ images:
 
 # Substitutions for environment variables
 substitutions:
-  _YOUTUBE_API_KEY: 'your-api-key-here'
+  _YOUTUBE_API_KEY: 'AIzaSyC5qJrNAwNr6Eargninbe0O_jNA4CmQx7M'
   _REDIS_URL: 'redis://your-memorystore-ip:6379'
   _SECRET_KEY: 'your-secret-key-here'
 
