@@ -845,19 +845,57 @@
 
         .progress-bar {
             flex: 1;
-            height: 4px;
+            height: 6px;
             background: rgba(255, 255, 255, 0.2);
-            border-radius: 2px;
+            border-radius: 3px;
             overflow: hidden;
             cursor: pointer;
             position: relative;
+            transition: height 0.2s ease;
         }
 
+        .progress-bar:hover {
+            height: 8px;
+        }
+
+        /* Buffered progress (light gray) - shows loaded portion */
+        .buffered-progress {
+            position: absolute;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.4);
+            width: 0%;
+            transition: width 0.3s ease;
+            z-index: 1;
+        }
+
+        /* Current playback progress (gradient) */
         .progress {
+            position: absolute;
             height: 100%;
             background: linear-gradient(90deg, #667eea, #764ba2);
             width: 0%;
             transition: width 0.1s linear;
+            z-index: 2;
+        }
+
+        /* Seek handle (appears on hover) */
+        .progress::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .progress-bar:hover .progress::after {
+            opacity: 1;
         }
 
         /* Modal */
@@ -1294,7 +1332,7 @@
 
     <!-- Sticky Music Player with Expandable Details -->
     <div class="player" id="musicPlayer">
-        <audio id="audioPlayer"></audio>
+        <audio id="audioPlayer" preload="auto"></audio>
 
         <!-- Expand/Collapse Button -->
         <button class="expand-btn" onclick="togglePlayerExpand()" title="Click to view video details, comments & more">
@@ -1329,6 +1367,7 @@
                 <div class="progress-container">
                     <span class="time" id="currentTime">0:00</span>
                     <div class="progress-bar" onclick="seekTo(event)">
+                        <div class="buffered-progress" id="bufferedBar"></div>
                         <div class="progress" id="progressBar"></div>
                     </div>
                     <span class="time" id="duration">0:00</span>
@@ -1647,31 +1686,55 @@
             playSong(currentPlaylist[index]);
         }
 
-        // Play Song
+        // Play Song with instant feedback
         async function playSong(song) {
             try {
-                // Use proxy endpoint to avoid IP-locked 403 errors
                 const audio = document.getElementById('audioPlayer');
-                audio.src = `${API_BASE}/music/stream/proxy/${song.video_id}`;
-                audio.play();
 
+                // Show loading state immediately
+                document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                // Update UI immediately for instant feedback
                 document.getElementById('currentSongTitle').textContent = song.title;
                 document.getElementById('currentSongArtist').textContent = song.artist;
                 document.getElementById('albumArt').src = song.thumbnail || 'https://via.placeholder.com/120';
                 document.getElementById('albumDisk').classList.add('playing');
-                document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
-                isPlaying = true;
+
+                // Reset progress bars
+                document.getElementById('progressBar').style.width = '0%';
+                document.getElementById('bufferedBar').style.width = '0%';
+                document.getElementById('currentTime').textContent = '0:00';
 
                 // Store current video ID and enable expand button
                 currentVideoId = song.video_id;
                 document.getElementById('musicPlayer').classList.add('has-song');
 
-                // Clear previous video details if player was expanded
+                // Load and play audio (proxy endpoint to avoid IP-locked 403 errors)
+                audio.src = `${API_BASE}/music/stream/proxy/${song.video_id}`;
+                audio.load(); // Force load to start buffering immediately
+
+                // Play as soon as possible
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
+                        isPlaying = true;
+                    }).catch(error => {
+                        console.error('Playback error:', error);
+                        document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
+                        isPlaying = false;
+                    });
+                }
+
+                // Load video details in background (if player is expanded)
                 if (isPlayerExpanded) {
-                    loadVideoDetails(song.video_id);
+                    setTimeout(() => loadVideoDetails(song.video_id), 500);
                 }
             } catch (error) {
-                alert('Error playing song');
+                console.error('Error playing song:', error);
+                alert('Error playing song. Please try again.');
+                document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
+                isPlaying = false;
             }
         }
 
@@ -1731,25 +1794,131 @@
             document.getElementById('shuffleBtn').style.opacity = isShuffle ? '1' : '0.5';
         }
 
-        // Progress Bar
+        // Progress Bar with Buffering Indicator
         const audio = document.getElementById('audioPlayer');
+
+        // Update playback progress
         audio.addEventListener('timeupdate', () => {
-            const percent = (audio.currentTime / audio.duration) * 100;
-            document.getElementById('progressBar').style.width = percent + '%';
-            document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
-            document.getElementById('duration').textContent = formatTime(audio.duration);
+            if (audio.duration) {
+                const percent = (audio.currentTime / audio.duration) * 100;
+                document.getElementById('progressBar').style.width = percent + '%';
+                document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
+                document.getElementById('duration').textContent = formatTime(audio.duration);
+            }
+
+            // Also update buffered progress on timeupdate (more reliable)
+            updateBufferedProgress();
+        });
+
+        // Update buffered progress (shows loaded portion)
+        function updateBufferedProgress() {
+            try {
+                if (audio.duration && audio.buffered.length > 0) {
+                    // Find the buffered range that contains current playback position
+                    let bufferedEnd = 0;
+                    for (let i = 0; i < audio.buffered.length; i++) {
+                        const start = audio.buffered.start(i);
+                        const end = audio.buffered.end(i);
+
+                        // Use the furthest buffered end
+                        if (end > bufferedEnd) {
+                            bufferedEnd = end;
+                        }
+                    }
+
+                    const bufferedPercent = Math.min(100, (bufferedEnd / audio.duration) * 100);
+                    document.getElementById('bufferedBar').style.width = bufferedPercent + '%';
+
+                    // Debug log (remove in production)
+                    if (bufferedPercent > 0) {
+                        console.log(`Buffered: ${bufferedPercent.toFixed(1)}%`);
+                    }
+                }
+            } catch (e) {
+                // Ignore buffering errors
+            }
+        }
+
+        audio.addEventListener('progress', updateBufferedProgress);
+        audio.addEventListener('loadedmetadata', updateBufferedProgress);
+        audio.addEventListener('canplay', updateBufferedProgress);
+
+        // Show loading state (buffering)
+        audio.addEventListener('waiting', () => {
+            document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            console.log('Buffering...');
+        });
+
+        // Hide loading state when ready
+        audio.addEventListener('canplay', () => {
+            if (isPlaying) {
+                document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
+            }
+            console.log('Can play');
+        });
+
+        // Auto-play when enough data is loaded
+        audio.addEventListener('canplaythrough', () => {
+            console.log('Can play through - fully buffered');
+            updateBufferedProgress();
+        });
+
+        // Track loading progress
+        audio.addEventListener('loadstart', () => {
+            console.log('Loading started');
+            document.getElementById('bufferedBar').style.width = '0%';
+        });
+
+        audio.addEventListener('loadeddata', () => {
+            console.log('First frame loaded');
+            updateBufferedProgress();
+        });
+
+        audio.addEventListener('stalled', () => {
+            console.log('Download stalled');
+        });
+
+        audio.addEventListener('suspend', () => {
+            console.log('Download suspended');
+            updateBufferedProgress();
         });
 
         audio.addEventListener('ended', () => {
             nextSong();
         });
 
+        // Improved seeking with visual feedback
         function seekTo(event) {
             const bar = event.currentTarget;
             const rect = bar.getBoundingClientRect();
-            const percent = (event.clientX - rect.left) / rect.width;
-            audio.currentTime = percent * audio.duration;
+            const percent = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+            const newTime = percent * audio.duration;
+
+            if (!isNaN(newTime) && isFinite(newTime)) {
+                audio.currentTime = newTime;
+                // Update progress bar immediately for instant feedback
+                document.getElementById('progressBar').style.width = (percent * 100) + '%';
+            }
         }
+
+        // Add drag support for seeking
+        let isDragging = false;
+        const progressBar = document.querySelector('.progress-bar');
+
+        progressBar.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            seekTo(e);
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                seekTo(e);
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
 
         // Format Time
         function formatTime(seconds) {

@@ -2,12 +2,10 @@
 # ============================================================================
 # FILE: app/api/v1/endpoints/music.py
 # ============================================================================
-from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
-import httpx
 import httpx
 from app.db.session import get_db
 from app.api.dependencies import get_current_user
@@ -83,11 +81,12 @@ async def get_stream_info(
 @router.get("/stream/proxy/{video_id}")
 async def proxy_stream(
     video_id: str,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user)
 ):
     """
-    Proxy audio stream to avoid IP-locked 403 errors
+    Proxy audio stream with Range request support for instant seeking
     YouTube URLs are IP-locked - only work from the IP that generated them
     This endpoint fetches the stream from Cloud Run and proxies it to the user
     """
@@ -101,25 +100,48 @@ async def proxy_stream(
         user_id = current_user.id if current_user else None
         music_service.track_playback(db, video_id, user_id)
 
-        # Proxy the stream
+        # Get Range header from client request
+        range_header = request.headers.get("Range")
+        headers = {}
+        if range_header:
+            headers["Range"] = range_header
+
+        # Proxy the stream with range support
         async def stream_generator():
-            async with httpx.AsyncClient(timeout=300.0) as client:
-                async with client.stream("GET", stream_info["url"]) as response:
-                    if response.status_code != 200:
+            async with httpx.AsyncClient(timeout=300.0, follow_redirects=True) as client:
+                async with client.stream("GET", stream_info["url"], headers=headers) as response:
+                    if response.status_code not in [200, 206]:
                         logger.error(f"YouTube stream error: {response.status_code}")
                         raise HTTPException(status_code=response.status_code, detail="Stream unavailable")
 
-                    async for chunk in response.aiter_bytes(chunk_size=65536):
+                    # Stream with larger chunks for faster playback
+                    async for chunk in response.aiter_bytes(chunk_size=131072):  # 128KB chunks
                         yield chunk
+
+        # Prepare response headers
+        response_headers = {
+            "Accept-Ranges": "bytes",
+            "Cache-Control": "public, max-age=3600",  # Cache for 1 hour
+            "Content-Disposition": f'inline; filename="{video_id}.webm"'
+        }
+
+        # Get content length and range info from YouTube response
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+            head_response = await client.head(stream_info["url"])
+            content_length = head_response.headers.get("Content-Length")
+            if content_length:
+                response_headers["Content-Length"] = content_length
+
+        status_code = 200
+        if range_header:
+            status_code = 206  # Partial Content
+            response_headers["Content-Range"] = f"bytes */{content_length or '*'}"
 
         return StreamingResponse(
             stream_generator(),
+            status_code=status_code,
             media_type="audio/webm",
-            headers={
-                "Accept-Ranges": "bytes",
-                "Cache-Control": "no-cache",
-                "Content-Disposition": f'inline; filename="{video_id}.webm"'
-            }
+            headers=response_headers
         )
     except HTTPException:
         raise
