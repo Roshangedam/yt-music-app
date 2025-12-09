@@ -101,11 +101,11 @@ class YTMusicClient:
         for path in possible_cookie_paths:
             if os.path.exists(path):
                 cookies_path = path
-                logger.info(f"✓ Found cookies at: {path}")
+                logger.info(f"[OK] Found cookies at: {path}")
                 break
 
         if not cookies_path:
-            logger.warning(f"✗ No cookies found. Tried: {possible_cookie_paths}")
+            logger.warning(f"[WARN] No cookies found. Tried: {possible_cookie_paths}")
 
         # Try multiple strategies with cookies
         strategies = [
@@ -152,7 +152,7 @@ class YTMusicClient:
                     info = ydl.extract_info(f"https://youtube.com/watch?v={video_id}", download=False)
 
                     if info and info.get('url'):
-                        logger.info(f"✓ {strategy['name']}: {info.get('ext')} - {info.get('acodec')}")
+                        logger.info(f"[SUCCESS] {strategy['name']}: {info.get('ext')} - {info.get('acodec')}")
                         return {
                             "video_id": video_id,
                             "url": info.get('url'),
@@ -163,10 +163,10 @@ class YTMusicClient:
                             "codec": info.get('acodec', 'unknown'),
                         }
             except Exception as e:
-                logger.warning(f"✗ {strategy['name']}: {str(e)[:60]}")
+                logger.warning(f"[FAIL] {strategy['name']}: {str(e)[:60]}")
                 continue
 
-        logger.error(f"All strategies failed for {video_id}")
+        logger.error(f"[ERROR] All strategies failed for {video_id}")
         return None
 
 # Singleton instance

@@ -2,25 +2,35 @@
 # Builds and deploys to Cloud Run
 
 steps:
+  # Delete old services first (ignore errors if they don't exist)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        gcloud run services delete yt-music-app --region=europe-west1 --quiet || true
+        gcloud run services delete ytmusic-app --region=europe-west1 --quiet || true
+        gcloud run services delete music-app --region=europe-west1 --quiet || true
+
   # Build the container image (no cache to ensure latest yt-dlp)
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '--no-cache', '-t', 'gcr.io/$PROJECT_ID/ytmusic-app:$COMMIT_SHA', '.']
-  
+
   # Push the container image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/ytmusic-app:$COMMIT_SHA']
-  
-  # Deploy container image to Cloud Run
+
+  # Deploy fresh container to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
       - 'run'
       - 'deploy'
-      - 'ytmusic-app'
+      - 'music-app'
       - '--image'
       - 'gcr.io/$PROJECT_ID/ytmusic-app:$COMMIT_SHA'
       - '--region'
-      - 'us-central1'
+      - 'europe-west1'
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
