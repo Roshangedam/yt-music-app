@@ -4,8 +4,10 @@
 # ============================================================================
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
+import httpx
 import httpx
 from app.db.session import get_db
 from app.api.dependencies import get_current_user
@@ -137,6 +139,7 @@ async def track_play(
     """
     user_id = current_user.id if current_user else None
     music_service.track_playback(db, video_id, user_id)
+
 
     return {
         "message": "Playback tracked" if current_user else "Playback not saved (anonymous user)",
