@@ -34,7 +34,12 @@ class Settings(BaseSettings):
     
     # YTMusic / yt_dlp
     YT_DLP_FORMAT: str = "bestaudio/best"
-    
+
+    # YouTube Data API v3
+    YOUTUBE_API_KEY: str = "AIzaSyC5qJrNAwNr6Eargninbe0O_jNA4CmQx7M"
+    YOUTUBE_API_SERVICE_NAME: str = "youtube"
+    YOUTUBE_API_VERSION: str = "v3"
+
     class Config:
         env_file = ".env"
         case_sensitive = True

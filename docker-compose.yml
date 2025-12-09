@@ -13,6 +13,9 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=change-this-secret-key-in-production
       - DEBUG=True
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+      - YOUTUBE_API_SERVICE_NAME=youtube
+      - YOUTUBE_API_VERSION=v3
     volumes:
       - ./app:/app/app
       - ./frontend:/app/frontend
