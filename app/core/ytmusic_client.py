@@ -87,23 +87,35 @@ class YTMusicClient:
             return None
     
     def get_stream_url(self, video_id: str) -> Optional[Dict]:
-        """Get streaming URL using yt_dlp"""
+        """Get streaming URL using yt_dlp with Chrome-compatible formats"""
         try:
             ydl_opts = {
-                'format': 'bestaudio/best',
+                # Force Chrome-compatible audio formats (m4a with AAC codec)
+                'format': 'bestaudio[ext=m4a]/bestaudio[acodec=aac]/bestaudio[ext=webm][acodec=opus]/bestaudio',
                 'quiet': True,
                 'no_warnings': True,
+                'prefer_free_formats': False,
+                'extract_flat': False,
+                # Add headers to avoid 403 errors
+                'http_headers': {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                }
             }
-            
+
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(f"https://youtube.com/watch?v={video_id}", download=False)
-                
+
+                # Log format info for debugging
+                logger.info(f"Stream format for {video_id}: {info.get('ext')} - {info.get('acodec')}")
+
                 return {
                     "video_id": video_id,
                     "url": info.get('url'),
                     "title": info.get('title'),
                     "duration": info.get('duration'),
                     "thumbnail": info.get('thumbnail'),
+                    "format": info.get('ext', 'unknown'),
+                    "codec": info.get('acodec', 'unknown'),
                 }
         except Exception as e:
             logger.error(f"yt_dlp stream error: {e}")
