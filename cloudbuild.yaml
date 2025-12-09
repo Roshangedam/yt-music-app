@@ -2,9 +2,9 @@
 # Builds and deploys to Cloud Run
 
 steps:
-  # Build the container image
+  # Build the container image (no cache to ensure latest yt-dlp)
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/ytmusic-app:$COMMIT_SHA', '.']
+    args: ['build', '--no-cache', '-t', 'gcr.io/$PROJECT_ID/ytmusic-app:$COMMIT_SHA', '.']
   
   # Push the container image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
