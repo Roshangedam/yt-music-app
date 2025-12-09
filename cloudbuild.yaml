@@ -37,7 +37,7 @@ steps:
       - '--port'
       - '8080'
       - '--set-env-vars'
-      - 'YOUTUBE_API_KEY=AIzaSyC5qJrNAwNr6Eargninbe0O_jNA4CmQx7M,REDIS_URL=redis://localhost:6379,SECRET_KEY=your-secret-key,PORT=8080'
+      - 'YOUTUBE_API_KEY=AIzaSyC5qJrNAwNr6Eargninbe0O_jNA4CmQx7M,REDIS_URL=redis://localhost:6379,SECRET_KEY=your-secret-key'
       - '--memory'
       - '1Gi'
       - '--cpu'
