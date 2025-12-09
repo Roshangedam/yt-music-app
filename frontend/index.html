@@ -29,6 +29,30 @@
             flex-direction: column;
         }
 
+        /* Thin Scrollbar Styles */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+        }
+
+        *::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        *::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        *::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+
+        *::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
         /* Header - Sticky at top */
         .header {
             flex-shrink: 0;
@@ -437,7 +461,7 @@
         }
 
         .player.expanded {
-            max-height: 100vh;
+            max-height: 90%;
             overflow-y: auto;
         }
 
@@ -454,23 +478,23 @@
         /* Expand/Collapse Button */
         .expand-btn {
             position: absolute;
-            top: -18px;
+            top: -13px;
             left: 50%;
             transform: translateX(-50%);
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.98), rgba(118, 75, 162, 0.98));
+            background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            width: 98px;
+            height: 25px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             color: white;
-            font-size: 1.1rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            font-size: 0.9rem;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
             opacity: 0;
             pointer-events: none;
             z-index: 1001;
@@ -479,27 +503,17 @@
         .player.has-song .expand-btn {
             opacity: 1;
             pointer-events: all;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-            }
-            50% {
-                box-shadow: 0 4px 25px rgba(102, 126, 234, 0.6), 0 0 15px rgba(118, 75, 162, 0.4);
-            }
         }
 
         .expand-btn:hover {
-            background: linear-gradient(135deg, rgba(118, 75, 162, 0.98), rgba(102, 126, 234, 0.98));
-            transform: translateX(-50%) scale(1.15);
-            box-shadow: 0 6px 30px rgba(118, 75, 162, 0.6);
-            animation: none;
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         }
 
         .expand-btn i {
-            transition: transform 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .player.expanded .expand-btn i {
@@ -1061,10 +1075,10 @@
             }
 
             .expand-btn {
-                width: 36px;
-                height: 36px;
+                width: 63px;
+                height: 32px;
                 font-size: 1rem;
-                top: -16px;
+                top: -19px;
             }
 
             .video-details-panel {
