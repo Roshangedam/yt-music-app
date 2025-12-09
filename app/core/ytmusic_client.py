@@ -87,53 +87,73 @@ class YTMusicClient:
             return None
     
     def get_stream_url(self, video_id: str) -> Optional[Dict]:
-        """Get streaming URL using yt_dlp with aggressive bot detection bypass"""
-        try:
-            ydl_opts = {
-                'format': 'bestaudio/best',
-                'quiet': True,
-                'no_warnings': True,
-                'extract_flat': False,
-                'nocheckcertificate': True,
-                'geo_bypass': True,
-                'age_limit': None,
-                # Enhanced headers to bypass bot detection
-                'http_headers': {
-                    'User-Agent': 'com.google.android.youtube/19.09.37 (Linux; U; Android 11) gzip',
-                    'Accept': '*/*',
-                    'Accept-Language': 'en-US,en;q=0.9',
-                    'Accept-Encoding': 'gzip, deflate',
-                    'X-YouTube-Client-Name': '3',
-                    'X-YouTube-Client-Version': '19.09.37',
-                },
-                # Force Android client ONLY (most reliable for Cloud Run)
-                'extractor_args': {
-                    'youtube': {
-                        'player_client': ['android_creator'],
-                        'player_skip': ['webpage', 'configs', 'js'],
-                        'skip': ['hls', 'dash', 'translated_subs'],
-                    }
-                },
-            }
+        """Get streaming URL using public cookies + mobile clients"""
+        import os
 
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(f"https://youtube.com/watch?v={video_id}", download=False)
+        # Get cookies path
+        cookies_path = os.path.join(os.path.dirname(__file__), '..', '..', 'cookies.txt')
 
-                # Log format info for debugging
-                logger.info(f"Stream format for {video_id}: {info.get('ext')} - {info.get('acodec')}")
+        # Try multiple strategies with cookies
+        strategies = [
+            {
+                'name': 'android_music',
+                'client': ['android_music'],
+            },
+            {
+                'name': 'ios_music',
+                'client': ['ios_music'],
+            },
+            {
+                'name': 'android',
+                'client': ['android'],
+            },
+            {
+                'name': 'ios',
+                'client': ['ios'],
+            },
+        ]
 
-                return {
-                    "video_id": video_id,
-                    "url": info.get('url'),
-                    "title": info.get('title'),
-                    "duration": info.get('duration'),
-                    "thumbnail": info.get('thumbnail'),
-                    "format": info.get('ext', 'unknown'),
-                    "codec": info.get('acodec', 'unknown'),
+        for strategy in strategies:
+            try:
+                ydl_opts = {
+                    'format': 'bestaudio/best',
+                    'quiet': True,
+                    'no_warnings': True,
+                    'nocheckcertificate': True,
+                    'extractor_args': {
+                        'youtube': {
+                            'player_client': strategy['client'],
+                            'player_skip': ['webpage', 'configs'],
+                        }
+                    },
                 }
-        except Exception as e:
-            logger.error(f"yt_dlp stream error: {e}")
-            return None
+
+                # Add cookies if file exists
+                if os.path.exists(cookies_path):
+                    ydl_opts['cookiefile'] = cookies_path
+
+                logger.info(f"Trying {strategy['name']} for {video_id}")
+
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(f"https://youtube.com/watch?v={video_id}", download=False)
+
+                    if info and info.get('url'):
+                        logger.info(f"✓ {strategy['name']}: {info.get('ext')} - {info.get('acodec')}")
+                        return {
+                            "video_id": video_id,
+                            "url": info.get('url'),
+                            "title": info.get('title'),
+                            "duration": info.get('duration'),
+                            "thumbnail": info.get('thumbnail'),
+                            "format": info.get('ext', 'unknown'),
+                            "codec": info.get('acodec', 'unknown'),
+                        }
+            except Exception as e:
+                logger.warning(f"✗ {strategy['name']}: {str(e)[:60]}")
+                continue
+
+        logger.error(f"All strategies failed for {video_id}")
+        return None
 
 # Singleton instance
 ytmusic_client = YTMusicClient()
