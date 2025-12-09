@@ -450,7 +450,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(102, 126, 234, 0.95);
+            background: rgba(102, 126, 234, 0.41);
             backdrop-filter: blur(20px);
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.3);
@@ -1196,6 +1196,34 @@
                 min-width: 35px;
             }
 
+            /* Mobile - Larger touch target for progress bar */
+            .progress-bar {
+                height: 8px !important;
+                touch-action: none; /* Prevent scrolling while dragging */
+            }
+
+            .progress-bar:active {
+                height: 12px !important;
+            }
+
+            /* Mobile - Always show seek handle for better visibility */
+            .progress::after {
+                opacity: 0.7 !important;
+                width: 14px !important;
+                height: 14px !important;
+            }
+
+            .progress-bar:active .progress::after {
+                opacity: 1 !important;
+                width: 16px !important;
+                height: 16px !important;
+            }
+
+            /* Mobile - Better buffered bar visibility */
+            .buffered-progress {
+                background: rgba(255, 255, 255, 0.5) !important;
+            }
+
             .modal-content {
                 padding: 20px;
                 max-width: 90%;
@@ -1366,7 +1394,7 @@
 
                 <div class="progress-container">
                     <span class="time" id="currentTime">0:00</span>
-                    <div class="progress-bar" onclick="seekTo(event)">
+                    <div class="progress-bar">
                         <div class="buffered-progress" id="bufferedBar"></div>
                         <div class="progress" id="progressBar"></div>
                     </div>
@@ -1887,24 +1915,35 @@
             nextSong();
         });
 
-        // Improved seeking with visual feedback
+        // Improved seeking with visual feedback (Desktop + Mobile)
         function seekTo(event) {
-            const bar = event.currentTarget;
+            event.preventDefault(); // Prevent default touch behavior
+
+            const bar = event.currentTarget || document.querySelector('.progress-bar');
             const rect = bar.getBoundingClientRect();
-            const percent = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+
+            // Support both mouse and touch events
+            const clientX = event.clientX || (event.touches && event.touches[0].clientX) ||
+                           (event.changedTouches && event.changedTouches[0].clientX);
+
+            if (!clientX) return;
+
+            const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
             const newTime = percent * audio.duration;
 
-            if (!isNaN(newTime) && isFinite(newTime)) {
+            if (!isNaN(newTime) && isFinite(newTime) && audio.duration > 0) {
                 audio.currentTime = newTime;
                 // Update progress bar immediately for instant feedback
                 document.getElementById('progressBar').style.width = (percent * 100) + '%';
+                console.log(`Seeked to ${formatTime(newTime)} (${(percent * 100).toFixed(1)}%)`);
             }
         }
 
-        // Add drag support for seeking
+        // Add drag support for seeking (Desktop + Mobile)
         let isDragging = false;
         const progressBar = document.querySelector('.progress-bar');
 
+        // Desktop - Mouse events
         progressBar.addEventListener('mousedown', (e) => {
             isDragging = true;
             seekTo(e);
@@ -1917,6 +1956,26 @@
         });
 
         document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        // Mobile - Touch events
+        progressBar.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            seekTo(e);
+        }, { passive: false });
+
+        progressBar.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                seekTo(e);
+            }
+        }, { passive: false });
+
+        progressBar.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        progressBar.addEventListener('touchcancel', () => {
             isDragging = false;
         });
 
