@@ -87,7 +87,7 @@ class YTMusicClient:
             return None
     
     def get_stream_url(self, video_id: str) -> Optional[Dict]:
-        """Get streaming URL using yt_dlp with bot detection bypass"""
+        """Get streaming URL using yt_dlp with aggressive bot detection bypass"""
         try:
             ydl_opts = {
                 'format': 'bestaudio/best',
@@ -99,24 +99,19 @@ class YTMusicClient:
                 'age_limit': None,
                 # Enhanced headers to bypass bot detection
                 'http_headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                    'User-Agent': 'com.google.android.youtube/19.09.37 (Linux; U; Android 11) gzip',
+                    'Accept': '*/*',
                     'Accept-Language': 'en-US,en;q=0.9',
-                    'Accept-Encoding': 'gzip, deflate, br',
-                    'DNT': '1',
-                    'Connection': 'keep-alive',
-                    'Upgrade-Insecure-Requests': '1',
-                    'Sec-Fetch-Dest': 'document',
-                    'Sec-Fetch-Mode': 'navigate',
-                    'Sec-Fetch-Site': 'none',
-                    'Sec-Fetch-User': '?1',
-                    'Cache-Control': 'max-age=0',
+                    'Accept-Encoding': 'gzip, deflate',
+                    'X-YouTube-Client-Name': '3',
+                    'X-YouTube-Client-Version': '19.09.37',
                 },
-                # Use Android client to bypass bot detection
+                # Force Android client ONLY (most reliable for Cloud Run)
                 'extractor_args': {
                     'youtube': {
-                        'player_client': ['android', 'web'],
-                        'player_skip': ['webpage', 'configs'],
+                        'player_client': ['android_creator'],
+                        'player_skip': ['webpage', 'configs', 'js'],
+                        'skip': ['hls', 'dash', 'translated_subs'],
                     }
                 },
             }
