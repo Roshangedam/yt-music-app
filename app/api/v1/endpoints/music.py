@@ -102,14 +102,43 @@ async def proxy_stream(
 
         # Get Range header from client request
         range_header = request.headers.get("Range")
-        headers = {}
+        request_headers = {}
         if range_header:
-            headers["Range"] = range_header
+            request_headers["Range"] = range_header
 
-        # Proxy the stream with range support
+        # First, get YouTube response to extract headers
+        youtube_response = None
+        response_headers = {
+            "Accept-Ranges": "bytes",
+            "Cache-Control": "public, max-age=3600",
+            "Content-Disposition": f'inline; filename="{video_id}.webm"',
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Expose-Headers": "Content-Length, Content-Range"
+        }
+
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+            youtube_response = await client.get(stream_info["url"], headers=request_headers)
+
+            if youtube_response.status_code not in [200, 206]:
+                logger.error(f"YouTube stream error: {youtube_response.status_code}")
+                raise HTTPException(status_code=youtube_response.status_code, detail="Stream unavailable")
+
+            # Forward important headers from YouTube
+            if "Content-Length" in youtube_response.headers:
+                response_headers["Content-Length"] = youtube_response.headers["Content-Length"]
+
+            if "Content-Range" in youtube_response.headers:
+                response_headers["Content-Range"] = youtube_response.headers["Content-Range"]
+
+            if "Content-Type" in youtube_response.headers:
+                media_type = youtube_response.headers["Content-Type"]
+            else:
+                media_type = "audio/webm"
+
+        # Proxy the stream
         async def stream_generator():
             async with httpx.AsyncClient(timeout=300.0, follow_redirects=True) as client:
-                async with client.stream("GET", stream_info["url"], headers=headers) as response:
+                async with client.stream("GET", stream_info["url"], headers=request_headers) as response:
                     if response.status_code not in [200, 206]:
                         logger.error(f"YouTube stream error: {response.status_code}")
                         raise HTTPException(status_code=response.status_code, detail="Stream unavailable")
@@ -118,29 +147,12 @@ async def proxy_stream(
                     async for chunk in response.aiter_bytes(chunk_size=131072):  # 128KB chunks
                         yield chunk
 
-        # Prepare response headers
-        response_headers = {
-            "Accept-Ranges": "bytes",
-            "Cache-Control": "public, max-age=3600",  # Cache for 1 hour
-            "Content-Disposition": f'inline; filename="{video_id}.webm"'
-        }
-
-        # Get content length and range info from YouTube response
-        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-            head_response = await client.head(stream_info["url"])
-            content_length = head_response.headers.get("Content-Length")
-            if content_length:
-                response_headers["Content-Length"] = content_length
-
-        status_code = 200
-        if range_header:
-            status_code = 206  # Partial Content
-            response_headers["Content-Range"] = f"bytes */{content_length or '*'}"
+        status_code = youtube_response.status_code if youtube_response else 200
 
         return StreamingResponse(
             stream_generator(),
             status_code=status_code,
-            media_type="audio/webm",
+            media_type=media_type,
             headers=response_headers
         )
     except HTTPException:
