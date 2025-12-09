@@ -90,8 +90,22 @@ class YTMusicClient:
         """Get streaming URL using public cookies + mobile clients"""
         import os
 
-        # Get cookies path
-        cookies_path = os.path.join(os.path.dirname(__file__), '..', '..', 'cookies.txt')
+        # Try multiple cookie paths (local vs Docker vs Cloud Run)
+        possible_cookie_paths = [
+            '/app/cookies.txt',  # Docker/Cloud Run
+            os.path.join(os.path.dirname(__file__), '..', '..', 'cookies.txt'),  # Local
+            'cookies.txt',  # Current directory
+        ]
+
+        cookies_path = None
+        for path in possible_cookie_paths:
+            if os.path.exists(path):
+                cookies_path = path
+                logger.info(f"✓ Found cookies at: {path}")
+                break
+
+        if not cookies_path:
+            logger.warning(f"✗ No cookies found. Tried: {possible_cookie_paths}")
 
         # Try multiple strategies with cookies
         strategies = [
@@ -128,8 +142,8 @@ class YTMusicClient:
                     },
                 }
 
-                # Add cookies if file exists
-                if os.path.exists(cookies_path):
+                # Add cookies if found
+                if cookies_path:
                     ydl_opts['cookiefile'] = cookies_path
 
                 logger.info(f"Trying {strategy['name']} for {video_id}")
