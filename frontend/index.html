@@ -1089,12 +1089,13 @@
             opacity: 0;
             max-height: 0;
             overflow: hidden;
-            transition: all 0.4s ease;
+            transition: max-height 0.35s ease, opacity 0.35s ease;
+            will-change: max-height, opacity;
         }
 
         .player.expanded .video-details-panel {
             opacity: 1;
-            max-height: none;
+            max-height: 80vh;
         }
 
         .details-section {
@@ -1904,6 +1905,10 @@
                 width: 36px;
                 height: 36px;
                 font-size: 0.9rem;
+            }
+
+            .songs-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
