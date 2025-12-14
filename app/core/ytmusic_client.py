@@ -166,7 +166,60 @@ class YTMusicClient:
                 logger.warning(f"[FAIL] {strategy['name']}: {str(e)[:60]}")
                 continue
 
-        logger.error(f"[ERROR] All strategies failed for {video_id}")
+        # If normal strategies failed, attempt fallback using logged cookies
+        try:
+            # Locate logged cookies file
+            possible_logged_cookie_paths = [
+                '/app/logged_cookies.txt',
+                os.path.join(os.path.dirname(__file__), '..', '..', 'logged_cookies.txt'),
+                'logged_cookies.txt',
+            ]
+            logged_cookies_path = None
+            for p in possible_logged_cookie_paths:
+                if os.path.exists(p):
+                    logged_cookies_path = p
+                    logger.info(f"[OK] Found logged cookies at: {p}")
+                    break
+
+            if logged_cookies_path:
+                for strategy in strategies:
+                    try:
+                        ydl_opts = {
+                            'format': 'bestaudio/best',
+                            'quiet': True,
+                            'no_warnings': True,
+                            'nocheckcertificate': True,
+                            'extractor_args': {
+                                'youtube': {
+                                    'player_client': strategy['client'],
+                                    'player_skip': ['webpage', 'configs'],
+                                }
+                            },
+                            'cookiefile': logged_cookies_path,
+                        }
+                        logger.info(f"Fallback trying {strategy['name']} with logged cookies for {video_id}")
+                        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                            info = ydl.extract_info(f"https://youtube.com/watch?v={video_id}", download=False)
+                            if info and info.get('url'):
+                                logger.info(f"[SUCCESS] Fallback {strategy['name']}: {info.get('ext')} - {info.get('acodec')}")
+                                return {
+                                    "video_id": video_id,
+                                    "url": info.get('url'),
+                                    "title": info.get('title'),
+                                    "duration": info.get('duration'),
+                                    "thumbnail": info.get('thumbnail'),
+                                    "format": info.get('ext', 'unknown'),
+                                    "codec": info.get('acodec', 'unknown'),
+                                }
+                    except Exception as e:
+                        logger.warning(f"[FAIL] Fallback {strategy['name']}: {str(e)[:60]}")
+                        continue
+            else:
+                logger.warning("[WARN] Logged cookies file not found for fallback.")
+        except Exception as e:
+            logger.error(f"[ERROR] Fallback with logged cookies failed: {str(e)[:80]}")
+
+        logger.error(f"[ERROR] All strategies (including fallback) failed for {video_id}")
         return None
 
 # Singleton instance

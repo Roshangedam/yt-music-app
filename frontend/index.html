@@ -2081,7 +2081,7 @@
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:8000/api/v1';
+        const API_BASE = 'https://music-app-920748930700.europe-west1.run.app/api/v1';
         let token = localStorage.getItem('token');
         let currentPlaylist = [];
         let currentSongIndex = -1;
@@ -3143,6 +3143,34 @@
             }
         });
 
+        // Submit logged cookies to backend
+        async function submitLoggedCookies() {
+            const statusEl = document.getElementById('loggedCookiesStatus');
+            const textarea = document.getElementById('loggedCookiesInput');
+            if (!textarea) return;
+            const content = textarea.value;
+            if (!content || !content.trim()) {
+                if (statusEl) { statusEl.textContent = 'Please paste valid cookies content.'; statusEl.style.color = '#ffdddd'; }
+                return;
+            }
+            try {
+                if (statusEl) { statusEl.textContent = 'Saving logged cookies...'; statusEl.style.color = '#dddddd'; }
+                const res = await fetch(API_BASE + '/cookies/logged', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({cookies: content})
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    if (statusEl) { statusEl.textContent = 'Logged cookies saved successfully.'; statusEl.style.color = '#d4edda'; }
+                } else {
+                    if (statusEl) { statusEl.textContent = 'Failed to save: ' + (data.detail || 'Unknown error'); statusEl.style.color = '#ffdddd'; }
+                }
+            } catch (err) {
+                if (statusEl) { statusEl.textContent = 'Network error while saving cookies.'; statusEl.style.color = '#ffdddd'; }
+            }
+        }
+
         // Initialize
         checkAuth();
     </script>
@@ -3176,6 +3204,30 @@
                                 <i class="fas fa-th"></i> Grid View
                             </button>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Fallback Streaming: Logged Cookies -->
+                <div class="settings-section">
+                    <h3>Fallback Streaming</h3>
+                    <div class="settings-option">
+                        <div class="settings-option-label">
+                            <i class="fas fa-cookie-bite"></i>
+                            Logged Cookies (Paste & Submit)
+                        </div>
+                        <div class="settings-option-description">
+                            Use this only if normal streaming fails or YouTube asks to login. Paste your logged cookies below and submit to save them for fallback streaming. Contents will be written verbatim to a secure file and never logged.
+                        </div>
+                        <textarea id="loggedCookiesInput" placeholder="Paste logged cookies here..." style="width: 100%; min-height: 120px; margin-top: 10px; border-radius: 8px; padding: 10px;"></textarea>
+                        <div style="display: flex; gap: 10px; margin-top: 12px;">
+                            <button class="btn btn-primary" onclick="submitLoggedCookies()" style="flex: 1;">
+                                <i class="fas fa-save"></i> Save Logged Cookies
+                            </button>
+                            <button class="btn" onclick="document.getElementById('loggedCookiesInput').value='';" style="flex: 1;">
+                                <i class="fas fa-eraser"></i> Clear
+                            </button>
+                        </div>
+                        <p id="loggedCookiesStatus" style="margin-top: 8px; font-size: 0.9rem;"></p>
                     </div>
                 </div>
             </div>
