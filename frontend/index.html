@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Music Streaming</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         * {
             margin: 0;
@@ -2409,21 +2410,77 @@
                 currentVideoId = song.video_id;
                 document.getElementById('musicPlayer').classList.add('has-song');
 
-                // Load and play audio (proxy endpoint to avoid IP-locked 403 errors)
-                audio.src = `${API_BASE}/music/stream/proxy/${song.video_id}`;
-                audio.load(); // Force load to start buffering immediately
+                // Load stream info and route playback based on protocol
+                const infoResp = await fetch(`${API_BASE}/music/stream/info/${song.video_id}`);
+                const streamInfo = await infoResp.json();
+                const isHls = !!(streamInfo && (streamInfo.is_hls === true || (typeof streamInfo.protocol === 'string' && streamInfo.protocol.toLowerCase().includes('m3u8')) || streamInfo.mime_type === 'application/vnd.apple.mpegurl'));
+                console.log('StreamInfo check:', { streamInfo, isHls, protocol: streamInfo?.protocol, mime_type: streamInfo?.mime_type });
 
-                // Play as soon as possible
-                const playPromise = audio.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
-                        isPlaying = true;
-                    }).catch(error => {
-                        console.error('Playback error:', error);
+                // Cleanup any previous HLS instance
+                if (window.hlsInstance) {
+                    try { window.hlsInstance.destroy(); } catch (e) {}
+                    window.hlsInstance = null;
+                }
+
+                if (isHls) {
+                    // Use hls.js when available; fallback to native HLS (Safari)
+                    if (window.Hls && window.Hls.isSupported()) {
+                        const hls = new Hls({ maxBufferLength: 30 });
+                        window.hlsInstance = hls;
+                        hls.loadSource(`${API_BASE}/music/stream/proxy/${song.video_id}`);
+                        hls.attachMedia(audio);
+                        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                            const playPromise = audio.play();
+                            if (playPromise !== undefined) {
+                                playPromise.then(() => {
+                                    document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
+                                    isPlaying = true;
+                                }).catch(error => {
+                                    console.error('Playback error:', error);
+                                    document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
+                                    isPlaying = false;
+                                });
+                            }
+                        });
+                        hls.on(Hls.Events.ERROR, (event, data) => {
+                            console.error('HLS error:', data);
+                        });
+                    } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
+                        // Safari supports HLS natively
+                        audio.src = `${API_BASE}/music/stream/proxy/${song.video_id}`;
+                        audio.load();
+                        const playPromise = audio.play();
+                        if (playPromise !== undefined) {
+                            playPromise.then(() => {
+                                document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
+                                isPlaying = true;
+                            }).catch(error => {
+                                console.error('Playback error:', error);
+                                document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
+                                isPlaying = false;
+                            });
+                        }
+                    } else {
+                        console.error('Cannot play HLS: hls.js not supported and native HLS unavailable');
+                        alert('This browser cannot play HLS audio. Please use a modern browser like Chrome/Edge/Firefox or Safari.');
                         document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
                         isPlaying = false;
-                    });
+                    }
+                } else {
+                    // Progressive audio path via proxy for range/seek
+                    audio.src = `${API_BASE}/music/stream/proxy/${song.video_id}`;
+                    audio.load();
+                    const playPromise = audio.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
+                            isPlaying = true;
+                        }).catch(error => {
+                            console.error('Playback error:', error);
+                            document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
+                            isPlaying = false;
+                        });
+                    }
                 }
 
                 // Load video details in background (if player is expanded)

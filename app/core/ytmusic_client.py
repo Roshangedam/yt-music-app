@@ -14,6 +14,87 @@ class YTMusicClient:
     def __init__(self):
         self.ytmusic = YTMusic()
 
+    def _infer_mime_type(self, ext: Optional[str]) -> str:
+        if not ext:
+            return "application/octet-stream"
+        e = ext.lower()
+        if e in ["m3u8", "hls", "mpegurl"]:
+            return "application/vnd.apple.mpegurl"
+        if e in ["m4a", "mp4"]:
+            return "audio/mp4"
+        if e == "webm":
+            return "audio/webm"
+        if e == "mp3":
+            return "audio/mpeg"
+        return f"audio/{e}"
+
+    def _select_best_audio_stream(self, info: Dict) -> Optional[Dict]:
+        """Select a playable audio stream, preferring direct file URLs over HLS/DASH."""
+        try:
+            fmts = info.get("formats") or []
+            # Prefer direct file protocols over HLS/DASH
+            allowed_protocols = {"https", "http"}
+            audio_direct = [
+                f for f in fmts
+                if f.get("vcodec") == "none" and f.get("protocol") in allowed_protocols
+            ]
+
+            def score(f: Dict) -> Tuple[int, float]:
+                ext = (f.get("ext") or "").lower()
+                ext_bonus = 2 if ext == "m4a" else (1 if ext == "webm" else 0)
+                abr = f.get("abr") or f.get("tbr") or 0
+                return (ext_bonus, float(abr))
+
+            audio_direct.sort(key=score, reverse=True)
+            if audio_direct:
+                best = audio_direct[0]
+                return {
+                    "url": best.get("url"),
+                    "ext": best.get("ext") or info.get("ext"),
+                    "acodec": best.get("acodec") or info.get("acodec"),
+                    "mime_type": self._infer_mime_type(best.get("ext")),
+                    "protocol": best.get("protocol"),
+                    "is_hls": False,
+                }
+
+            # If only HLS available, pick audio-only m3u8
+            hls_audio = [
+                f for f in fmts
+                if f.get("vcodec") == "none" and (f.get("protocol") in {"m3u8", "m3u8_native"})
+            ]
+            hls_audio.sort(key=lambda f: (f.get("abr") or f.get("tbr") or 0), reverse=True)
+            if hls_audio:
+                best = hls_audio[0]
+                return {
+                    "url": best.get("url"),
+                    "ext": best.get("ext") or info.get("ext"),
+                    "acodec": best.get("acodec") or info.get("acodec"),
+                    "mime_type": "application/vnd.apple.mpegurl",
+                    "protocol": best.get("protocol"),
+                    "is_hls": True,
+                }
+
+            # As last resort, fall back to top-level url
+            url = info.get("url")
+            if url:
+                ext = info.get("ext")
+                proto = (info.get("protocol") or "").lower()
+                is_hls = (proto in {"m3u8", "m3u8_native"}) or (".m3u8" in url)
+                mime = "application/vnd.apple.mpegurl" if is_hls else self._infer_mime_type(ext)
+                protocol = proto if proto else ("m3u8" if is_hls else "https")
+                return {
+                    "url": url,
+                    "ext": ext,
+                    "acodec": info.get("acodec"),
+                    "mime_type": mime,
+                    "protocol": protocol,
+                    "is_hls": is_hls,
+                }
+        except Exception as e:
+            logger.warning(f"Stream selection error: {str(e)[:80]}")
+            return None
+        return None
+
     def search(self, query: str, limit: int = 20, continuation: Optional[str] = None) -> Tuple[List[Dict], Optional[str]]:
         """
         Search for songs on YouTube Music with pagination support
@@ -151,16 +232,20 @@ class YTMusicClient:
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     info = ydl.extract_info(f"https://youtube.com/watch?v={video_id}", download=False)
 
-                    if info and info.get('url'):
-                        logger.info(f"[SUCCESS] {strategy['name']}: {info.get('ext')} - {info.get('acodec')}")
+                    selected = self._select_best_audio_stream(info)
+                    if selected and selected.get("url"):
+                        logger.info(f"[SUCCESS] {strategy['name']}: {selected.get('ext')} - {selected.get('acodec')} - {selected.get('protocol')}")
                         return {
                             "video_id": video_id,
-                            "url": info.get('url'),
-                            "title": info.get('title'),
-                            "duration": info.get('duration'),
-                            "thumbnail": info.get('thumbnail'),
-                            "format": info.get('ext', 'unknown'),
-                            "codec": info.get('acodec', 'unknown'),
+                            "url": selected.get("url"),
+                            "title": info.get("title"),
+                            "duration": info.get("duration"),
+                            "thumbnail": info.get("thumbnail"),
+                            "format": selected.get("ext", "unknown"),
+                            "codec": selected.get("acodec", "unknown"),
+                            "mime_type": selected.get("mime_type", "application/octet-stream"),
+                            "protocol": selected.get("protocol", "https"),
+                            "is_hls": selected.get("is_hls", False),
                         }
             except Exception as e:
                 logger.warning(f"[FAIL] {strategy['name']}: {str(e)[:60]}")
@@ -200,16 +285,20 @@ class YTMusicClient:
                         logger.info(f"Fallback trying {strategy['name']} with logged cookies for {video_id}")
                         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                             info = ydl.extract_info(f"https://youtube.com/watch?v={video_id}", download=False)
-                            if info and info.get('url'):
-                                logger.info(f"[SUCCESS] Fallback {strategy['name']}: {info.get('ext')} - {info.get('acodec')}")
+                            selected = self._select_best_audio_stream(info)
+                            if selected and selected.get("url"):
+                                logger.info(f"[SUCCESS] Fallback {strategy['name']}: {selected.get('ext')} - {selected.get('acodec')} - {selected.get('protocol')}")
                                 return {
                                     "video_id": video_id,
-                                    "url": info.get('url'),
-                                    "title": info.get('title'),
-                                    "duration": info.get('duration'),
-                                    "thumbnail": info.get('thumbnail'),
-                                    "format": info.get('ext', 'unknown'),
-                                    "codec": info.get('acodec', 'unknown'),
+                                    "url": selected.get("url"),
+                                    "title": info.get("title"),
+                                    "duration": info.get("duration"),
+                                    "thumbnail": info.get("thumbnail"),
+                                    "format": selected.get("ext", "unknown"),
+                                    "codec": selected.get("acodec", "unknown"),
+                                    "mime_type": selected.get("mime_type", "application/octet-stream"),
+                                    "protocol": selected.get("protocol", "https"),
+                                    "is_hls": selected.get("is_hls", False),
                                 }
                     except Exception as e:
                         logger.warning(f"[FAIL] Fallback {strategy['name']}: {str(e)[:60]}")

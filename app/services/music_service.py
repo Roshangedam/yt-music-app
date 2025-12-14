@@ -106,12 +106,37 @@ class MusicService:
         cached_stream = cache.get_cache(cache_key)
         if cached_stream:
             logger.info(f"Cache hit for stream: {video_id}")
+            # Sanitize cached stream: ensure HLS detection is correct
+            try:
+                url = cached_stream.get("url")
+                proto = (cached_stream.get("protocol") or "").lower()
+                is_hls = bool(url and ".m3u8" in url) or (proto in {"m3u8", "m3u8_native"})
+                if is_hls:
+                    cached_stream["is_hls"] = True
+                    cached_stream["mime_type"] = "application/vnd.apple.mpegurl"
+                    cached_stream["protocol"] = proto if proto else "m3u8"
+                    # Refresh cache with corrected info
+                    cache.set_cache(cache_key, cached_stream, 900)
+            except Exception:
+                pass
             return cached_stream
         
         # Fetch stream info
         stream_info = ytmusic_client.get_stream_url(video_id)
         if not stream_info:
             return None
+        
+        # Sanitize fetched stream: ensure HLS detection is correct
+        try:
+            url = stream_info.get("url")
+            proto = (stream_info.get("protocol") or "").lower()
+            is_hls = bool(url and ".m3u8" in url) or (proto in {"m3u8", "m3u8_native"})
+            if is_hls:
+                stream_info["is_hls"] = True
+                stream_info["mime_type"] = "application/vnd.apple.mpegurl"
+                stream_info["protocol"] = proto if proto else "m3u8"
+        except Exception:
+            pass
         
         # Cache with shorter expiration (streaming URLs expire)
         cache.set_cache(cache_key, stream_info, 900)  # 15 minutes

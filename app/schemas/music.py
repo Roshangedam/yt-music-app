@@ -26,3 +26,6 @@ class StreamInfo(BaseModel):
     title: str
     duration: Optional[int] = None
     thumbnail: Optional[str] = None
+    mime_type: Optional[str] = None
+    protocol: Optional[str] = None
+    is_hls: bool = False
