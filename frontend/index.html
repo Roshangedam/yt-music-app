@@ -254,7 +254,7 @@
         .header {
             flex-shrink: 0;
             background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(30px) saturate(180%);
+            backdrop-filter: blur(30px) saturate(120%);
             border-bottom: 1px solid rgba(255, 255, 255, 0.3);
             padding: 12px 20px;
             z-index: 1000;
@@ -383,9 +383,9 @@
         }
 
         .tab {
-            background: rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0);
             backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.25);
             padding: 10px 22px;
             border-radius: 50px;
             cursor: pointer;
@@ -465,11 +465,11 @@
 
         /* Search Bar */
         .search-container {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0);
             backdrop-filter: blur(20px) saturate(180%);
             border-radius: 50px;
             padding: 6px 22px;
-            border: 1px solid rgba(255, 255, 255, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.30);
             display: flex;
             gap: 10px;
             box-shadow: 0 4px 15px rgba(31, 38, 135, 0.1);
@@ -534,9 +534,9 @@
 
         /* Settings Icon */
         .settings-icon {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0);
             backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.30);
             border-radius: 50%;
             width: 46px;
             height: 46px;
@@ -2081,7 +2081,7 @@
     </div>
 
     <script>
-        const API_BASE = 'https://music-app-920748930700.europe-west1.run.app/api/v1';
+        const API_BASE = 'http://localhost:8000/api/v1';
         let token = localStorage.getItem('token');
         let currentPlaylist = [];
         let currentSongIndex = -1;
