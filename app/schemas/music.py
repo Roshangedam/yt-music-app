@@ -29,3 +29,11 @@ class StreamInfo(BaseModel):
     mime_type: Optional[str] = None
     protocol: Optional[str] = None
     is_hls: bool = False
+    # Video stream info for dual-mode playback
+    has_video: bool = False
+    video_url: Optional[str] = None
+    video_mime_type: Optional[str] = None
+    video_height: Optional[int] = None
+    # Quality selection
+    qualities: Optional[List] = None
+    default_quality: Optional[str] = None

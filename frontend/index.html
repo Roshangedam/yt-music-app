@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Music Streaming</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <!-- Video.js for unified audio/video playback -->
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet">
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -38,9 +40,11 @@
             0% {
                 background-position: 0% 50%;
             }
+
             50% {
                 background-position: 100% 50%;
             }
+
             100% {
                 background-position: 0% 50%;
             }
@@ -77,9 +81,12 @@
         }
 
         @keyframes breathingEffect {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: translate(-50%, -50%) scale(1);
             }
+
             50% {
                 transform: translate(-50%, -50%) scale(1.15);
             }
@@ -131,13 +138,11 @@
             left: -100%;
             width: 300%;
             height: 100%;
-            background: repeating-linear-gradient(
-                90deg,
-                transparent,
-                transparent 12px,
-                rgba(255, 255, 255, 0.08) 12px,
-                rgba(255, 255, 255, 0.08) 14px
-            );
+            background: repeating-linear-gradient(90deg,
+                    transparent,
+                    transparent 12px,
+                    rgba(255, 255, 255, 0.08) 12px,
+                    rgba(255, 255, 255, 0.08) 14px);
             animation: sphereTexture 20s linear infinite;
         }
 
@@ -149,13 +154,11 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 18px,
-                rgba(255, 255, 255, 0.05) 18px,
-                rgba(255, 255, 255, 0.05) 20px
-            );
+            background: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 18px,
+                    rgba(255, 255, 255, 0.05) 18px,
+                    rgba(255, 255, 255, 0.05) 20px);
             border-radius: 50%;
         }
 
@@ -163,6 +166,7 @@
             0% {
                 transform: translate(-50%, -50%) rotateY(0deg);
             }
+
             100% {
                 transform: translate(-50%, -50%) rotateY(360deg);
             }
@@ -172,19 +176,23 @@
             0% {
                 left: -100%;
             }
+
             100% {
                 left: 0%;
             }
         }
 
         @keyframes sphereGlow {
-            0%, 100% {
+
+            0%,
+            100% {
                 box-shadow:
                     inset -15px -15px 30px rgba(0, 0, 0, 0.2),
                     inset 15px 15px 30px rgba(255, 255, 255, 0.15),
                     0 0 25px rgba(255, 255, 255, 0.25),
                     0 0 50px rgba(255, 255, 255, 0.2);
             }
+
             50% {
                 box-shadow:
                     inset -15px -15px 30px rgba(0, 0, 0, 0.2),
@@ -286,23 +294,26 @@
             font-size: 1.4rem;
             animation: logoGlow 4s ease-in-out infinite;
             box-shadow: 0 0 25px rgba(255, 255, 255, 0.5),
-                        0 0 50px rgba(255, 255, 255, 0.3);
+                0 0 50px rgba(255, 255, 255, 0.3);
             position: relative;
         }
 
         @keyframes logoGlow {
-            0%, 100% {
+
+            0%,
+            100% {
                 box-shadow: 0 0 25px rgba(255, 255, 255, 0.5),
-                            0 0 50px rgba(255, 255, 255, 0.3),
-                            0 0 75px rgba(255, 255, 255, 0.2),
-                            inset 0 0 20px rgba(255, 255, 255, 0.3);
+                    0 0 50px rgba(255, 255, 255, 0.3),
+                    0 0 75px rgba(255, 255, 255, 0.2),
+                    inset 0 0 20px rgba(255, 255, 255, 0.3);
                 transform: scale(1);
             }
+
             50% {
                 box-shadow: 0 0 40px rgba(255, 255, 255, 0.8),
-                            0 0 80px rgba(255, 255, 255, 0.6),
-                            0 0 120px rgba(255, 255, 255, 0.4),
-                            inset 0 0 30px rgba(255, 255, 255, 0.5);
+                    0 0 80px rgba(255, 255, 255, 0.6),
+                    0 0 120px rgba(255, 255, 255, 0.4),
+                    inset 0 0 30px rgba(255, 255, 255, 0.5);
                 transform: scale(1.08);
             }
         }
@@ -312,9 +323,12 @@
         }
 
         @keyframes iconPulse {
-            0%, 100% {
+
+            0%,
+            100% {
                 opacity: 0.9;
             }
+
             50% {
                 opacity: 1;
             }
@@ -366,7 +380,8 @@
             overflow-y: auto;
             overflow-x: hidden;
             padding: 20px;
-            padding-bottom: 160px; /* Space for fixed player */
+            padding-bottom: 160px;
+            /* Space for fixed player */
             min-height: 0;
         }
 
@@ -593,9 +608,9 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                        visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                        background 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                        backdrop-filter 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                background 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                backdrop-filter 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .dialog-overlay.active {
@@ -620,7 +635,7 @@
             transform: scale(0.8) translateY(-30px);
             opacity: 0;
             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-                        opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .dialog-overlay.active .dialog {
@@ -1235,8 +1250,13 @@
         }
 
         @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .error-message {
@@ -1452,7 +1472,7 @@
             height: 12px;
             background: white;
             border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             opacity: 0;
             transition: opacity 0.2s ease;
         }
@@ -1549,6 +1569,7 @@
             from {
                 transform: rotate(0deg);
             }
+
             to {
                 transform: rotate(360deg);
             }
@@ -1831,7 +1852,8 @@
             /* Mobile - Larger touch target for progress bar */
             .progress-bar {
                 height: 8px !important;
-                touch-action: none; /* Prevent scrolling while dragging */
+                touch-action: none;
+                /* Prevent scrolling while dragging */
             }
 
             .progress-bar:active {
@@ -1912,6 +1934,246 @@
                 grid-template-columns: repeat(2, 1fr);
             }
         }
+
+        /* Video.js Player Styles - Dual Mode */
+        /* Video player container - hidden by default, shown in video mode */
+        .video-player-wrapper {
+            display: none;
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            flex-shrink: 0;
+        }
+
+        .video-player-wrapper.video-mode {
+            display: block;
+        }
+
+        #videoPlayer {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Hide Video.js default controls - we use custom */
+        .video-js .vjs-control-bar,
+        .video-js .vjs-big-play-button,
+        .video-js .vjs-loading-spinner,
+        .video-js .vjs-text-track-display,
+        .video-js .vjs-modal-dialog {
+            display: none !important;
+        }
+
+        .video-js {
+            background-color: transparent !important;
+        }
+
+        /* Expanded video in YouTube mobile style */
+        .video-details-panel.expanded .video-container {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .video-details-panel.expanded .video-container .video-player-wrapper {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 0;
+        }
+
+        .video-details-panel.expanded .video-container #videoPlayer {
+            border-radius: 0;
+        }
+
+        /* Video Controls Overlay - shown on hover */
+        .video-controls-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom,
+                    rgba(0, 0, 0, 0.1) 0%,
+                    transparent 30%,
+                    transparent 70%,
+                    rgba(0, 0, 0, 0.7) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 10;
+            border-radius: inherit;
+        }
+
+        .video-player-wrapper:hover .video-controls-overlay,
+        .video-controls-overlay.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .video-center-play {
+            margin: auto;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid white;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-center-play:hover {
+            background: rgba(255, 0, 0, 0.8);
+            transform: scale(1.1);
+        }
+
+        .video-bottom-bar {
+            width: 100%;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .video-overlay-progress {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .video-overlay-progress-fill {
+            height: 100%;
+            background: #ff0000;
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .video-overlay-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .video-time {
+            color: white;
+            font-size: 0.65rem;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .video-settings-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: color 0.2s ease;
+            opacity: 0.8;
+        }
+
+        .video-settings-btn:hover {
+            color: #ff0000;
+            opacity: 1;
+        }
+
+        /* Quality Selection Menu */
+        .quality-menu {
+            position: absolute;
+            bottom: 100%;
+            right: 5px;
+            margin-bottom: 5px;
+            background: rgba(28, 28, 28, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 8px 0;
+            min-width: 120px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            z-index: 30;
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .quality-menu.visible {
+            display: block;
+        }
+
+        .quality-menu-header {
+            padding: 6px 12px;
+            font-weight: 600;
+            color: #888;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 4px;
+        }
+
+        .quality-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            color: white;
+            transition: background 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+        }
+
+        .quality-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .quality-option.active {
+            background: rgba(255, 0, 0, 0.15);
+            color: #ff4444;
+        }
+
+        .quality-option .checkmark {
+            color: #ff4444;
+            font-size: 0.75rem;
+        }
+
+        /* Expanded view - larger video wrapper */
+        .video-details-panel.expanded .video-player-wrapper .video-controls-overlay {
+            border-radius: 0;
+        }
+
+        .video-details-panel.expanded .video-center-play {
+            width: 70px;
+            height: 70px;
+            font-size: 1.5rem;
+        }
     </style>
 </head>
 
@@ -1991,7 +2253,8 @@
                             <input type="password" id="loginPassword" />
                         </div>
                         <button class="btn btn-primary" onclick="login()" style="width: 100%;">Login</button>
-                        <p style="margin-top: 15px; text-align: center; color: rgba(255,255,255,0.7); font-size: 0.85rem;">
+                        <p
+                            style="margin-top: 15px; text-align: center; color: rgba(255,255,255,0.7); font-size: 0.85rem;">
                             Don't have an account? <a href="#" onclick="showSignup()"
                                 style="color: #a8b8ff; text-decoration: none;">Sign up</a>
                         </p>
@@ -2011,20 +2274,53 @@
 
     <!-- Sticky Music Player with Expandable Details -->
     <div class="player" id="musicPlayer">
-        <audio id="audioPlayer" preload="auto"></audio>
+        <!-- Video.js Player (hidden, used for playback) -->
+        <video id="videoPlayer" class="video-js" preload="auto" playsinline></video>
 
         <!-- Expand/Collapse Button -->
         <button class="expand-btn" onclick="togglePlayerExpand()" title="Click to view video details, comments & more">
-            <i class="fas fa-chevron-down"></i>
+            <i class="fas fa-chevron-up"></i>
         </button>
 
         <div class="player-content">
+            <!-- CD Disc (visible in audio-only mode) -->
             <div class="cd-disc" id="albumDisk">
                 <div class="cd-center">
                     <img id="albumArt" src="https://via.placeholder.com/140?text=🎵" class="cd-thumbnail"
-                        id="cdThumbnail" alt="Album Art">
+                        alt="Album Art">
                 </div>
                 <div class="cd-hole"></div>
+            </div>
+
+            <!-- Video Player Wrapper (visible in video mode, replaces CD disc) -->
+            <div class="video-player-wrapper" id="videoPlayerWrapper">
+                <!-- Video element will be moved here when in video mode -->
+
+                <!-- Video Controls Overlay (shown on hover in video mode) -->
+                <div class="video-controls-overlay" id="videoControlsOverlay">
+                    <button class="video-center-play" onclick="togglePlay()">
+                        <i class="fas fa-play" id="videoCenterPlayIcon"></i>
+                    </button>
+                    <div class="video-bottom-bar">
+                        <div class="video-overlay-progress" onclick="seekToVideo(event)">
+                            <div class="video-overlay-progress-fill" id="videoOverlayProgress"></div>
+                        </div>
+                        <div class="video-overlay-controls">
+                            <span class="video-time" id="videoTimeDisplay">0:00 / 0:00</span>
+                            <button class="video-settings-btn" onclick="toggleQualityMenu(event)">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quality Selection Menu -->
+                <div class="quality-menu" id="qualityMenu">
+                    <div class="quality-menu-header">Quality</div>
+                    <div class="quality-options" id="qualityOptions">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
             </div>
 
             <div class="song-info">
@@ -2034,13 +2330,17 @@
 
             <div class="player-controls">
                 <div class="control-buttons">
-                    <button class="control-btn" onclick="previousSong()" title="Previous"><i class="fas fa-step-backward"></i></button>
+                    <button class="control-btn" onclick="previousSong()" title="Previous"><i
+                            class="fas fa-step-backward"></i></button>
                     <button class="control-btn play-pause" onclick="togglePlay()" id="playPauseBtn"
                         title="Play/Pause"><i class="fas fa-play"></i></button>
                     <button class="control-btn" onclick="stopSong()" title="Stop"><i class="fas fa-stop"></i></button>
-                    <button class="control-btn" onclick="nextSong()" title="Next"><i class="fas fa-step-forward"></i></button>
+                    <button class="control-btn" onclick="nextSong()" title="Next"><i
+                            class="fas fa-step-forward"></i></button>
                     <button class="control-btn" onclick="toggleShuffle()" id="shuffleBtn" style="opacity: 0.5;"
                         title="Shuffle"><i class="fas fa-random"></i></button>
+                    <button class="control-btn" onclick="toggleVideoMode()" id="videoModeBtn" style="opacity: 0.3;"
+                        title="Toggle Video" disabled><i class="fas fa-video"></i></button>
                 </div>
 
                 <div class="progress-container">
@@ -2056,6 +2356,10 @@
 
         <!-- Video Details Panel (Expandable) -->
         <div class="video-details-panel" id="videoDetailsPanel">
+            <!-- Video Container for YouTube mobile-style layout when expanded in video mode -->
+            <div class="video-container" id="expandedVideoContainer" style="display: none;">
+                <!-- Video will be displayed here when expanded in video mode -->
+            </div>
             <div id="videoDetailsContent">
                 <!-- Content will be loaded dynamically -->
             </div>
@@ -2082,7 +2386,7 @@
     </div>
 
     <script>
-        const API_BASE = 'https://music-app-920748930700.europe-west1.run.app/api/v1';
+        const API_BASE = 'http://localhost:8000/api/v1';
         let token = localStorage.getItem('token');
         let currentPlaylist = [];
         let currentSongIndex = -1;
@@ -2101,6 +2405,91 @@
         let isPlayerExpanded = false;
         let currentVideoId = null;
         let videoDetailsCache = {};
+
+        // Video.js Player State
+        let player = null;
+        let isVideoMode = false;  // Track audio-only vs video mode
+        let hasVideoStream = false;  // Track if current song has video available
+        let currentStreamInfo = null;  // Store current stream info for mode switching
+
+        // Quality Selection State
+        let availableQualities = [];
+        let currentQuality = 'audio_only';
+        let qualityMenuVisible = false;
+        let controlsHideTimeout = null;
+
+        // Initialize Video.js player on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            player = videojs('videoPlayer', {
+                controls: false,  // We use custom UI
+                autoplay: false,
+                preload: 'auto',
+                fluid: false,
+                techOrder: ['html5'],
+                html5: {
+                    vhs: {
+                        overrideNative: true
+                    },
+                    nativeAudioTracks: false,
+                    nativeVideoTracks: false
+                }
+            });
+
+            // Attach event listeners
+            player.on('loadedmetadata', function () {
+                const duration = player.duration();
+                document.getElementById('duration').textContent = formatTime(duration);
+            });
+
+            player.on('timeupdate', function () {
+                const currentTime = player.currentTime();
+                const duration = player.duration();
+
+                if (duration > 0) {
+                    const progressPercent = (currentTime / duration) * 100;
+                    document.getElementById('progressBar').style.width = progressPercent + '%';
+                    document.getElementById('currentTime').textContent = formatTime(currentTime);
+                }
+
+                // Also update video overlay controls
+                updateVideoOverlay();
+            });
+
+            player.on('progress', function () {
+                const buffered = player.buffered();
+                const duration = player.duration();
+
+                if (buffered.length > 0 && duration > 0) {
+                    const bufferedEnd = buffered.end(buffered.length - 1);
+                    const bufferedPercent = (bufferedEnd / duration) * 100;
+                    document.getElementById('bufferedBar').style.width = bufferedPercent + '%';
+                }
+            });
+
+            player.on('ended', function () {
+                nextSong();
+            });
+
+            player.on('error', function () {
+                console.error('Video.js playback error:', player.error());
+                document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
+                isPlaying = false;
+            });
+
+            player.on('play', function () {
+                isPlaying = true;
+                document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
+                document.getElementById('albumDisk').classList.add('playing');
+                updateVideoOverlay();  // Update video overlay play icon
+            });
+
+            player.on('pause', function () {
+                isPlaying = false;
+                document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
+                document.getElementById('albumDisk').classList.remove('playing');
+                updateVideoOverlay();  // Update video overlay play icon
+            });
+        });
 
         // Tab Navigation
         document.querySelectorAll('.tab').forEach(tab => {
@@ -2387,11 +2776,9 @@
             playSong(currentPlaylist[index]);
         }
 
-        // Play Song with instant feedback
+        // Play Song with Video.js and instant feedback
         async function playSong(song) {
             try {
-                const audio = document.getElementById('audioPlayer');
-
                 // Show loading state immediately
                 document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
@@ -2410,77 +2797,86 @@
                 currentVideoId = song.video_id;
                 document.getElementById('musicPlayer').classList.add('has-song');
 
-                // Load stream info and route playback based on protocol
+                // Load stream info from backend
                 const infoResp = await fetch(`${API_BASE}/music/stream/info/${song.video_id}`);
                 const streamInfo = await infoResp.json();
-                const isHls = !!(streamInfo && (streamInfo.is_hls === true || (typeof streamInfo.protocol === 'string' && streamInfo.protocol.toLowerCase().includes('m3u8')) || streamInfo.mime_type === 'application/vnd.apple.mpegurl'));
-                console.log('StreamInfo check:', { streamInfo, isHls, protocol: streamInfo?.protocol, mime_type: streamInfo?.mime_type });
+                currentStreamInfo = streamInfo;
 
-                // Cleanup any previous HLS instance
-                if (window.hlsInstance) {
-                    try { window.hlsInstance.destroy(); } catch (e) {}
-                    window.hlsInstance = null;
+                console.log('StreamInfo:', streamInfo);
+
+                // Check if video stream is available
+                hasVideoStream = streamInfo.has_video === true;
+
+                // Populate available qualities from backend                
+                if (streamInfo.qualities && streamInfo.qualities.length > 0) {
+                    availableQualities = streamInfo.qualities;
+                    currentQuality = streamInfo.default_quality || 'audio_only';
+                } else {
+                    // Fallback: create basic quality array
+                    availableQualities = [{
+                        quality_id: 'audio_only',
+                        label: 'Audio Only',
+                        url: streamInfo.url,
+                        mime_type: streamInfo.mime_type,
+                        is_video: false,
+                        height: 0
+                    }];
+
+                    if (hasVideoStream && streamInfo.video_url) {
+                        availableQualities.push({
+                            quality_id: `${streamInfo.video_height || 'video'}p`,
+                            label: `${streamInfo.video_height || 'Video'}p`,
+                            url: streamInfo.video_url,
+                            mime_type: streamInfo.video_mime_type,
+                            is_video: true,
+                            height: streamInfo.video_height || 0
+                        });
+                    }
+
+                    currentQuality = 'audio_only';
                 }
 
-                if (isHls) {
-                    // Use hls.js when available; fallback to native HLS (Safari)
-                    if (window.Hls && window.Hls.isSupported()) {
-                        const hls = new Hls({ maxBufferLength: 30 });
-                        window.hlsInstance = hls;
-                        hls.loadSource(`${API_BASE}/music/stream/proxy/${song.video_id}`);
-                        hls.attachMedia(audio);
-                        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                            const playPromise = audio.play();
-                            if (playPromise !== undefined) {
-                                playPromise.then(() => {
-                                    document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
-                                    isPlaying = true;
-                                }).catch(error => {
-                                    console.error('Playback error:', error);
-                                    document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
-                                    isPlaying = false;
-                                });
-                            }
-                        });
-                        hls.on(Hls.Events.ERROR, (event, data) => {
-                            console.error('HLS error:', data);
-                        });
-                    } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
-                        // Safari supports HLS natively
-                        audio.src = `${API_BASE}/music/stream/proxy/${song.video_id}`;
-                        audio.load();
-                        const playPromise = audio.play();
-                        if (playPromise !== undefined) {
-                            playPromise.then(() => {
-                                document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
-                                isPlaying = true;
-                            }).catch(error => {
-                                console.error('Playback error:', error);
-                                document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
-                                isPlaying = false;
-                            });
-                        }
-                    } else {
-                        console.error('Cannot play HLS: hls.js not supported and native HLS unavailable');
-                        alert('This browser cannot play HLS audio. Please use a modern browser like Chrome/Edge/Firefox or Safari.');
-                        document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
-                        isPlaying = false;
-                    }
+                console.log('Available qualities:', availableQualities.map(q => q.label));
+
+                // Update video toggle button visibility based on video availability
+                const videoBtn = document.getElementById('videoModeBtn');
+                if (hasVideoStream) {
+                    videoBtn.style.opacity = '1';
+                    videoBtn.disabled = false;
+                    videoBtn.title = 'Toggle Video Mode';
                 } else {
-                    // Progressive audio path via proxy for range/seek
-                    audio.src = `${API_BASE}/music/stream/proxy/${song.video_id}`;
-                    audio.load();
-                    const playPromise = audio.play();
-                    if (playPromise !== undefined) {
-                        playPromise.then(() => {
-                            document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
-                            isPlaying = true;
-                        }).catch(error => {
-                            console.error('Playback error:', error);
-                            document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
-                            isPlaying = false;
-                        });
-                    }
+                    videoBtn.style.opacity = '0.3';
+                    videoBtn.disabled = true;
+                    videoBtn.title = 'No video available';
+                    isVideoMode = false;  // Force audio-only mode if no video
+                }
+
+                // Determine which stream URL to use based on current mode
+                let streamUrl = `${API_BASE}/music/stream/proxy/${song.video_id}`;
+                let mimeType = streamInfo.mime_type || 'audio/webm';
+
+                // If in video mode and video stream is available, use video URL
+                if (isVideoMode && hasVideoStream && streamInfo.video_url) {
+                    mimeType = streamInfo.video_mime_type || 'video/mp4';
+                }
+
+                // Load stream into Video.js
+                player.src({
+                    src: streamUrl,
+                    type: mimeType
+                });
+
+                // Apply current playback mode (audio-only or video)
+                applyPlaybackMode();
+
+                // Play
+                try {
+                    await player.play();
+                } catch (playError) {
+                    console.error('Autoplay error:', playError);
+                    // Autoplay blocked - user will need to click play
+                    document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
+                    isPlaying = false;
                 }
 
                 // Load video details in background (if player is expanded)
@@ -2495,32 +2891,258 @@
             }
         }
 
-        // Toggle Play/Pause
-        function togglePlay() {
-            const audio = document.getElementById('audioPlayer');
-            const btn = document.getElementById('playPauseBtn');
-            const disk = document.getElementById('albumDisk');
+        // Toggle Video Mode (Audio-only vs Video)
+        function toggleVideoMode() {
+            if (!hasVideoStream) return;  // Can't toggle if no video available
 
-            if (!audio.src) return;
+            isVideoMode = !isVideoMode;
+            applyPlaybackMode();
 
-            if (isPlaying) {
-                audio.pause();
-                btn.innerHTML = '<i class="fas fa-play"></i>';
-                disk.classList.remove('playing');
-                isPlaying = false;
+            // Update button style
+            const videoBtn = document.getElementById('videoModeBtn');
+            videoBtn.style.opacity = isVideoMode ? '1' : '0.6';
+            videoBtn.classList.toggle('active', isVideoMode);
+
+            console.log('Video mode:', isVideoMode);
+        }
+
+        // Apply Playback Mode (show/hide video vs CD disc)
+        function applyPlaybackMode() {
+            const cdDisc = document.getElementById('albumDisk');
+            const videoWrapper = document.getElementById('videoPlayerWrapper');
+            const videoElement = document.getElementById('videoPlayer');
+
+            if (isVideoMode && hasVideoStream) {
+                // Video mode: show video, hide disc
+                cdDisc.style.display = 'none';
+                videoWrapper.classList.add('video-mode');
+
+                // Move video element to wrapper if not already there
+                if (videoElement.parentElement !== videoWrapper) {
+                    videoWrapper.appendChild(videoElement);
+                }
             } else {
-                audio.play();
-                btn.innerHTML = '<i class="fas fa-pause"></i>';
-                disk.classList.add('playing');
-                isPlaying = true;
+                // Audio-only mode: hide video, show disc
+                cdDisc.style.display = 'flex';
+                videoWrapper.classList.remove('video-mode');
+            }
+
+            // Update video center play button icon
+            updateVideoOverlay();
+        }
+
+        // Toggle Quality Menu
+        function toggleQualityMenu(event) {
+            if (event) event.stopPropagation();
+
+            qualityMenuVisible = !qualityMenuVisible;
+            const menu = document.getElementById('qualityMenu');
+
+            if (qualityMenuVisible) {
+                renderQualityOptions();
+                menu.classList.add('visible');
+            } else {
+                menu.classList.remove('visible');
             }
         }
 
-        // Stop Song
+        // Render Quality Options
+        function renderQualityOptions() {
+            const container = document.getElementById('qualityOptions');
+            container.innerHTML = '';
+
+            if (availableQualities.length === 0) {
+                container.innerHTML = '<div class="quality-option" style="color: #888;">No options available</div>';
+                return;
+            }
+
+            availableQualities.forEach(quality => {
+                const option = document.createElement('div');
+                option.className = 'quality-option' + (quality.quality_id === currentQuality ? ' active' : '');
+                option.innerHTML = `
+                    <span>${quality.label}</span>
+                    ${quality.quality_id === currentQuality ? '<i class="fas fa-check checkmark"></i>' : ''}
+                `;
+                option.onclick = (e) => {
+                    e.stopPropagation();
+                    switchQuality(quality.quality_id);
+                };
+                container.appendChild(option);
+            });
+        }
+
+        // Switch Quality with Smooth Transition
+        async function switchQuality(qualityId) {
+            if (qualityId === currentQuality) {
+                toggleQualityMenu();
+                return;
+            }
+
+            const quality = availableQualities.find(q => q.quality_id === qualityId);
+            if (!quality || !quality.url) {
+                console.error('Quality not found or no URL:', qualityId);
+                return;
+            }
+
+            try {
+                // Save current playback state
+                const currentTime = player.currentTime();
+                const wasPlaying = !player.paused();
+
+                // Show loading state
+                document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                console.log(`Switching quality to ${qualityId} at ${formatTime(currentTime)}`);
+
+                // Build proxied URL to bypass CORS
+                let streamUrl;
+                if (quality.is_video) {
+                    // Video qualities need to be proxied through backend
+                    const encodedUrl = encodeURIComponent(quality.url);
+                    streamUrl = `${API_BASE}/music/stream/proxy/${currentVideoId}?quality_url=${encodedUrl}`;
+                } else {
+                    // Audio-only uses the default proxy
+                    streamUrl = `${API_BASE}/music/stream/proxy/${currentVideoId}`;
+                }
+
+                // Load new quality stream through proxy
+                player.src({
+                    src: streamUrl,
+                    type: quality.mime_type
+                });
+
+                // Wait for metadata to load then restore position
+                player.one('loadedmetadata', async () => {
+                    try {
+                        // Restore playback position
+                        player.currentTime(currentTime);
+
+                        // Update state
+                        currentQuality = qualityId;
+                        isVideoMode = quality.is_video;
+
+                        // Apply visual mode
+                        applyPlaybackMode();
+
+                        // Update button states
+                        const videoBtn = document.getElementById('videoModeBtn');
+                        videoBtn.style.opacity = isVideoMode ? '1' : '0.6';
+                        videoBtn.classList.toggle('active', isVideoMode);
+
+                        // Resume playback if was playing
+                        if (wasPlaying) {
+                            await player.play();
+                        }
+
+                        console.log(`Quality switched to ${qualityId} successfully`);
+                    } catch (e) {
+                        console.error('Error restoring playback:', e);
+                    }
+                });
+
+                // Close quality menu
+                toggleQualityMenu();
+
+            } catch (error) {
+                console.error('Quality switch error:', error);
+                document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
+            }
+        }
+
+        // Enhanced toggleVideoMode - use quality switching for smooth transition
+        function toggleVideoMode() {
+            if (!hasVideoStream) return;
+
+            // Find target quality based on current mode
+            let targetQuality;
+            if (isVideoMode) {
+                // Currently video, switch to audio
+                targetQuality = availableQualities.find(q => !q.is_video);
+            } else {
+                // Currently audio, switch to best video
+                const videoQualities = availableQualities.filter(q => q.is_video);
+                targetQuality = videoQualities[videoQualities.length - 1]; // Highest quality
+            }
+
+            if (targetQuality) {
+                switchQuality(targetQuality.quality_id);
+            } else {
+                // Fallback: just toggle visual mode
+                isVideoMode = !isVideoMode;
+                applyPlaybackMode();
+
+                const videoBtn = document.getElementById('videoModeBtn');
+                videoBtn.style.opacity = isVideoMode ? '1' : '0.6';
+            }
+        }
+
+        // Seek in video overlay progress bar
+        function seekToVideo(event) {
+            if (!player) return;
+
+            const bar = event.currentTarget;
+            const rect = bar.getBoundingClientRect();
+            const percent = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+            const duration = player.duration();
+
+            if (duration > 0) {
+                player.currentTime(percent * duration);
+            }
+        }
+
+        // Update video overlay controls (called on timeupdate)
+        function updateVideoOverlay() {
+            if (!player) return;
+
+            const currentTime = player.currentTime();
+            const duration = player.duration();
+
+            // Update progress fill
+            const progressFill = document.getElementById('videoOverlayProgress');
+            if (progressFill && duration > 0) {
+                progressFill.style.width = ((currentTime / duration) * 100) + '%';
+            }
+
+            // Update time display
+            const timeDisplay = document.getElementById('videoTimeDisplay');
+            if (timeDisplay) {
+                timeDisplay.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
+            }
+
+            // Update center play icon
+            const centerIcon = document.getElementById('videoCenterPlayIcon');
+            if (centerIcon) {
+                centerIcon.className = isPlaying ? 'fas fa-pause' : 'fas fa-play';
+            }
+        }
+
+        // Close quality menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (qualityMenuVisible) {
+                const menu = document.getElementById('qualityMenu');
+                const settingsBtn = document.querySelector('.video-settings-btn');
+                if (!menu.contains(e.target) && !settingsBtn?.contains(e.target)) {
+                    toggleQualityMenu();
+                }
+            }
+        });
+
+        // Toggle Play/Pause (Video.js)
+        function togglePlay() {
+            if (!player || !player.src()) return;
+
+            if (isPlaying) {
+                player.pause();
+            } else {
+                player.play();
+            }
+        }
+
+        // Stop Song (Video.js)
         function stopSong() {
-            const audio = document.getElementById('audioPlayer');
-            audio.pause();
-            audio.currentTime = 0;
+            if (!player) return;
+            player.pause();
+            player.currentTime(0);
             document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
             document.getElementById('albumDisk').classList.remove('playing');
             isPlaying = false;
@@ -2551,117 +3173,26 @@
             document.getElementById('shuffleBtn').style.opacity = isShuffle ? '1' : '0.5';
         }
 
-        // Progress Bar with Buffering Indicator
-        const audio = document.getElementById('audioPlayer');
-
-        // Update playback progress
-        audio.addEventListener('timeupdate', () => {
-            if (audio.duration) {
-                const percent = (audio.currentTime / audio.duration) * 100;
-                document.getElementById('progressBar').style.width = percent + '%';
-                document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
-                document.getElementById('duration').textContent = formatTime(audio.duration);
-            }
-
-            // Also update buffered progress on timeupdate (more reliable)
-            updateBufferedProgress();
-        });
-
-        // Update buffered progress (shows loaded portion)
-        function updateBufferedProgress() {
-            try {
-                if (audio.duration && audio.buffered.length > 0) {
-                    // Find the buffered range that contains current playback position
-                    let bufferedEnd = 0;
-                    for (let i = 0; i < audio.buffered.length; i++) {
-                        const start = audio.buffered.start(i);
-                        const end = audio.buffered.end(i);
-
-                        // Use the furthest buffered end
-                        if (end > bufferedEnd) {
-                            bufferedEnd = end;
-                        }
-                    }
-
-                    const bufferedPercent = Math.min(100, (bufferedEnd / audio.duration) * 100);
-                    document.getElementById('bufferedBar').style.width = bufferedPercent + '%';
-
-                    // Debug log (remove in production)
-                    if (bufferedPercent > 0) {
-                        console.log(`Buffered: ${bufferedPercent.toFixed(1)}%`);
-                    }
-                }
-            } catch (e) {
-                // Ignore buffering errors
-            }
-        }
-
-        audio.addEventListener('progress', updateBufferedProgress);
-        audio.addEventListener('loadedmetadata', updateBufferedProgress);
-        audio.addEventListener('canplay', updateBufferedProgress);
-
-        // Show loading state (buffering)
-        audio.addEventListener('waiting', () => {
-            document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            console.log('Buffering...');
-        });
-
-        // Hide loading state when ready
-        audio.addEventListener('canplay', () => {
-            if (isPlaying) {
-                document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
-            }
-            console.log('Can play');
-        });
-
-        // Auto-play when enough data is loaded
-        audio.addEventListener('canplaythrough', () => {
-            console.log('Can play through - fully buffered');
-            updateBufferedProgress();
-        });
-
-        // Track loading progress
-        audio.addEventListener('loadstart', () => {
-            console.log('Loading started');
-            document.getElementById('bufferedBar').style.width = '0%';
-        });
-
-        audio.addEventListener('loadeddata', () => {
-            console.log('First frame loaded');
-            updateBufferedProgress();
-        });
-
-        audio.addEventListener('stalled', () => {
-            console.log('Download stalled');
-        });
-
-        audio.addEventListener('suspend', () => {
-            console.log('Download suspended');
-            updateBufferedProgress();
-        });
-
-        audio.addEventListener('ended', () => {
-            nextSong();
-        });
-
-        // Improved seeking with visual feedback (Desktop + Mobile)
+        // Improved seeking with visual feedback (Desktop + Mobile) - Video.js
         function seekTo(event) {
             event.preventDefault(); // Prevent default touch behavior
+            if (!player) return;
 
             const bar = event.currentTarget || document.querySelector('.progress-bar');
             const rect = bar.getBoundingClientRect();
 
             // Support both mouse and touch events
             const clientX = event.clientX || (event.touches && event.touches[0].clientX) ||
-                           (event.changedTouches && event.changedTouches[0].clientX);
+                (event.changedTouches && event.changedTouches[0].clientX);
 
             if (!clientX) return;
 
+            const duration = player.duration();
             const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-            const newTime = percent * audio.duration;
+            const newTime = percent * duration;
 
-            if (!isNaN(newTime) && isFinite(newTime) && audio.duration > 0) {
-                audio.currentTime = newTime;
+            if (!isNaN(newTime) && isFinite(newTime) && duration > 0) {
+                player.currentTime(newTime);
                 // Update progress bar immediately for instant feedback
                 document.getElementById('progressBar').style.width = (percent * 100) + '%';
                 console.log(`Seeked to ${formatTime(newTime)} (${(percent * 100).toFixed(1)}%)`);
@@ -3214,8 +3745,8 @@
                 if (statusEl) { statusEl.textContent = 'Saving logged cookies...'; statusEl.style.color = '#dddddd'; }
                 const res = await fetch(API_BASE + '/cookies/logged', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({cookies: content})
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cookies: content })
                 });
                 const data = await res.json();
                 if (res.ok) {
@@ -3273,14 +3804,18 @@
                             Logged Cookies (Paste & Submit)
                         </div>
                         <div class="settings-option-description">
-                            Use this only if normal streaming fails or YouTube asks to login. Paste your logged cookies below and submit to save them for fallback streaming. Contents will be written verbatim to a secure file and never logged.
+                            Use this only if normal streaming fails or YouTube asks to login. Paste your logged cookies
+                            below and submit to save them for fallback streaming. Contents will be written verbatim to a
+                            secure file and never logged.
                         </div>
-                        <textarea id="loggedCookiesInput" placeholder="Paste logged cookies here..." style="width: 100%; min-height: 120px; margin-top: 10px; border-radius: 8px; padding: 10px;"></textarea>
+                        <textarea id="loggedCookiesInput" placeholder="Paste logged cookies here..."
+                            style="width: 100%; min-height: 120px; margin-top: 10px; border-radius: 8px; padding: 10px;"></textarea>
                         <div style="display: flex; gap: 10px; margin-top: 12px;">
                             <button class="btn btn-primary" onclick="submitLoggedCookies()" style="flex: 1;">
                                 <i class="fas fa-save"></i> Save Logged Cookies
                             </button>
-                            <button class="btn" onclick="document.getElementById('loggedCookiesInput').value='';" style="flex: 1;">
+                            <button class="btn" onclick="document.getElementById('loggedCookiesInput').value='';"
+                                style="flex: 1;">
                                 <i class="fas fa-eraser"></i> Clear
                             </button>
                         </div>

@@ -95,6 +95,145 @@ class YTMusicClient:
             return None
         return None
 
+    def _select_best_video_stream(self, info: Dict) -> Optional[Dict]:
+        """Select a playable video+audio stream for video mode."""
+        try:
+            fmts = info.get("formats") or []
+            
+            # Look for formats with both video and audio
+            allowed_protocols = {"https", "http"}
+            video_formats = [
+                f for f in fmts
+                if f.get("vcodec") not in ["none", None]
+                and f.get("acodec") not in ["none", None]
+                and f.get("protocol") in allowed_protocols
+            ]
+
+            def score(f: Dict) -> Tuple[int, float]:
+                ext = (f.get("ext") or "").lower()
+                height = f.get("height") or 0
+                # Prefer mp4/webm, then by resolution (max 720p for performance)
+                ext_bonus = 2 if ext == "mp4" else (1 if ext == "webm" else 0)
+                # Cap at 720p for reasonable bandwidth
+                res_score = min(height, 720)
+                return (ext_bonus, float(res_score))
+
+            video_formats.sort(key=score, reverse=True)
+            if video_formats:
+                best = video_formats[0]
+                ext = best.get("ext", "mp4")
+                mime = f"video/{ext}" if ext else "video/mp4"
+                return {
+                    "url": best.get("url"),
+                    "ext": ext,
+                    "vcodec": best.get("vcodec"),
+                    "acodec": best.get("acodec"),
+                    "height": best.get("height"),
+                    "width": best.get("width"),
+                    "mime_type": mime,
+                    "protocol": best.get("protocol"),
+                    "is_hls": False,
+                }
+
+            # Try HLS with video
+            hls_video = [
+                f for f in fmts
+                if f.get("vcodec") not in ["none", None]
+                and (f.get("protocol") in {"m3u8", "m3u8_native"})
+            ]
+            hls_video.sort(key=lambda f: (f.get("height") or 0), reverse=True)
+            if hls_video:
+                best = hls_video[0]
+                return {
+                    "url": best.get("url"),
+                    "ext": best.get("ext") or "m3u8",
+                    "vcodec": best.get("vcodec"),
+                    "acodec": best.get("acodec"),
+                    "height": best.get("height"),
+                    "width": best.get("width"),
+                    "mime_type": "application/vnd.apple.mpegurl",
+                    "protocol": best.get("protocol"),
+                    "is_hls": True,
+                }
+
+            return None
+        except Exception as e:
+            logger.warning(f"Video stream selection error: {str(e)[:80]}")
+            return None
+
+    def _get_all_qualities(self, info: Dict, audio_stream: Optional[Dict]) -> List[Dict]:
+        """Extract all available quality options for quality selection menu."""
+        qualities = []
+        
+        try:
+            # Always add audio-only option first
+            if audio_stream and audio_stream.get("url"):
+                qualities.append({
+                    "quality_id": "audio_only",
+                    "label": "Audio Only",
+                    "url": audio_stream.get("url"),
+                    "mime_type": audio_stream.get("mime_type", "audio/webm"),
+                    "is_video": False,
+                    "height": 0,
+                    "width": 0
+                })
+            
+            fmts = info.get("formats") or []
+            # Include m3u8 because YouTube only provides URLs for HLS streams
+            allowed_protocols = {"https", "http", "m3u8", "m3u8_native"}
+            
+            # Get ALL video formats with URLs (HLS has URLs, HTTPS often doesn't)
+            video_formats = [
+                f for f in fmts
+                if f.get("vcodec") not in ["none", None]
+                and f.get("protocol") in allowed_protocols
+                and f.get("height")
+                and f.get("url")  # Must have URL
+            ]
+            
+            # Sort by height ascending
+            video_formats.sort(key=lambda f: f.get("height") or 0)
+            
+            # Group by resolution to avoid duplicates, cap at 720p
+            seen_heights = set()
+            for fmt in video_formats:
+                height = fmt.get("height")
+                if height and height not in seen_heights and height <= 720:
+                    seen_heights.add(height)
+                    proto = fmt.get("protocol", "")
+                    # Use correct mime type for HLS
+                    if proto in {"m3u8", "m3u8_native"}:
+                        mime = "application/vnd.apple.mpegurl"
+                    else:
+                        ext = fmt.get("ext", "mp4")
+                        mime = f"video/{ext}" if ext else "video/mp4"
+                    qualities.append({
+                        "quality_id": f"{height}p",
+                        "label": f"{height}p",
+                        "url": fmt.get("url"),
+                        "mime_type": mime,
+                        "is_video": True,
+                        "height": height,
+                        "width": fmt.get("width") or 0
+                    })
+            
+            return qualities
+            
+        except Exception as e:
+            logger.warning(f"Quality extraction error: {str(e)[:80]}")
+            # Return at least audio-only if available
+            if audio_stream and audio_stream.get("url"):
+                return [{
+                    "quality_id": "audio_only",
+                    "label": "Audio Only",
+                    "url": audio_stream.get("url"),
+                    "mime_type": audio_stream.get("mime_type", "audio/webm"),
+                    "is_video": False,
+                    "height": 0,
+                    "width": 0
+                }]
+            return []
+
     def search(self, query: str, limit: int = 20, continuation: Optional[str] = None) -> Tuple[List[Dict], Optional[str]]:
         """
         Search for songs on YouTube Music with pagination support
@@ -234,7 +373,14 @@ class YTMusicClient:
 
                     selected = self._select_best_audio_stream(info)
                     if selected and selected.get("url"):
-                        logger.info(f"[SUCCESS] {strategy['name']}: {selected.get('ext')} - {selected.get('acodec')} - {selected.get('protocol')}")
+                        # Also check for video stream availability
+                        video_stream = self._select_best_video_stream(info)
+                        has_video = video_stream is not None and video_stream.get("url") is not None
+                        
+                        # Get all available qualities for quality selection menu
+                        qualities = self._get_all_qualities(info, selected)
+                        
+                        logger.info(f"[SUCCESS] {strategy['name']}: {selected.get('ext')} - {selected.get('acodec')} - {selected.get('protocol')} - has_video: {has_video} - qualities: {len(qualities)}")
                         return {
                             "video_id": video_id,
                             "url": selected.get("url"),
@@ -246,6 +392,14 @@ class YTMusicClient:
                             "mime_type": selected.get("mime_type", "application/octet-stream"),
                             "protocol": selected.get("protocol", "https"),
                             "is_hls": selected.get("is_hls", False),
+                            # Video stream info for dual-mode playback
+                            "has_video": has_video,
+                            "video_url": video_stream.get("url") if has_video else None,
+                            "video_mime_type": video_stream.get("mime_type") if has_video else None,
+                            "video_height": video_stream.get("height") if has_video else None,
+                            # Quality selection
+                            "qualities": qualities,
+                            "default_quality": "audio_only"
                         }
             except Exception as e:
                 logger.warning(f"[FAIL] {strategy['name']}: {str(e)[:60]}")
@@ -287,7 +441,11 @@ class YTMusicClient:
                             info = ydl.extract_info(f"https://youtube.com/watch?v={video_id}", download=False)
                             selected = self._select_best_audio_stream(info)
                             if selected and selected.get("url"):
-                                logger.info(f"[SUCCESS] Fallback {strategy['name']}: {selected.get('ext')} - {selected.get('acodec')} - {selected.get('protocol')}")
+                                # Also check for video stream availability
+                                video_stream = self._select_best_video_stream(info)
+                                has_video = video_stream is not None and video_stream.get("url") is not None
+                                
+                                logger.info(f"[SUCCESS] Fallback {strategy['name']}: {selected.get('ext')} - {selected.get('acodec')} - {selected.get('protocol')} - has_video: {has_video}")
                                 return {
                                     "video_id": video_id,
                                     "url": selected.get("url"),
@@ -299,6 +457,11 @@ class YTMusicClient:
                                     "mime_type": selected.get("mime_type", "application/octet-stream"),
                                     "protocol": selected.get("protocol", "https"),
                                     "is_hls": selected.get("is_hls", False),
+                                    # Video stream info for dual-mode playback
+                                    "has_video": has_video,
+                                    "video_url": video_stream.get("url") if has_video else None,
+                                    "video_mime_type": video_stream.get("mime_type") if has_video else None,
+                                    "video_height": video_stream.get("height") if has_video else None,
                                 }
                     except Exception as e:
                         logger.warning(f"[FAIL] Fallback {strategy['name']}: {str(e)[:60]}")

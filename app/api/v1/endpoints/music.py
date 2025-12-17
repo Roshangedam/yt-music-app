@@ -83,6 +83,7 @@ async def get_stream_info(
 async def proxy_stream(
     video_id: str,
     request: Request,
+    quality_url: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user)
 ):
@@ -90,12 +91,20 @@ async def proxy_stream(
     Proxy audio stream with Range request support for instant seeking
     YouTube URLs are IP-locked - only work from the IP that generated them
     This endpoint fetches the stream from Cloud Run and proxies it to the user
+    Optionally, a quality_url can be provided to proxy a specific quality stream
     """
     try:
-        # Get stream URL
-        stream_info = music_service.get_stream_info(video_id)
-        if not stream_info:
-            raise HTTPException(status_code=404, detail="Stream info not found")
+        # Use provided quality URL or get default stream URL
+        if quality_url:
+            stream_url = quality_url
+            mime_type = "application/vnd.apple.mpegurl" if ".m3u8" in quality_url else "video/mp4"
+        else:
+            # Get stream URL from service
+            stream_info = music_service.get_stream_info(video_id)
+            if not stream_info:
+                raise HTTPException(status_code=404, detail="Stream info not found")
+            stream_url = stream_info["url"]
+            mime_type = stream_info.get("mime_type", "application/octet-stream")
 
         # Track playback
         user_id = current_user.id if current_user else None
@@ -118,7 +127,7 @@ async def proxy_stream(
         }
 
         async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-            youtube_response = await client.get(stream_info["url"], headers=request_headers)
+            youtube_response = await client.get(stream_url, headers=request_headers)
 
             if youtube_response.status_code not in [200, 206]:
                 logger.error(f"YouTube stream error: {youtube_response.status_code}")
