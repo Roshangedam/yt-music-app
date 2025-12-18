@@ -1039,11 +1039,95 @@
 
         .player.expanded {
             max-height: 90%;
+            overflow: hidden;
+            /* Container doesn't scroll, children do */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Sticky top section - player content stays visible */
+        .player.expanded .player-content {
+            flex-shrink: 0;
+            /* Don't shrink */
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        /* Scrollable bottom section - video details scroll independently */
+        .player.expanded .video-details-panel {
+            flex: 1;
             overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        /* Video Mode Expanded - Hide main controls bar, show inline controls below video */
+        .player.expanded.video-mode-expanded .player-content {
+            display: none;
+            /* Hide the main controls when video is expanded */
+        }
+
+        /* Inline controls bar that appears below video in expanded video mode */
+        .video-inline-controls {
+            display: none;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 12px 20px;
+        }
+
+        .player.expanded.video-mode-expanded .video-inline-controls {
+            display: block;
+        }
+
+        /* Video Song Info (shown in video mode expanded, above details on right side) */
+        .video-song-info {
+            display: none;
+            /* Hidden by default */
+            text-align: left;
+            /* Left align in desktop right panel */
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .player.expanded.video-mode-expanded .video-song-info {
+            display: block;
+            /* Visible in video mode expanded */
+        }
+
+        .video-song-info h3 {
+            margin: 0 0 4px 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.95);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .video-song-info p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .video-inline-controls .control-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .video-inline-controls .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .player-content {
             max-width: 1400px;
+            width: 100%;
             margin: 0 auto;
             display: flex;
             align-items: center;
@@ -1100,6 +1184,7 @@
         /* Video Details Panel */
         .video-details-panel {
             max-width: 1400px;
+            width: 100%;
             margin: 0 auto;
             padding: 20px;
             opacity: 0;
@@ -1111,7 +1196,56 @@
 
         .player.expanded .video-details-panel {
             opacity: 1;
-            max-height: 80vh;
+            max-height: none;
+            display: flex;
+            flex-direction: column;
+            /* Default: vertical layout for audio mode */
+        }
+
+        /* Desktop VIDEO MODE ONLY: side-by-side layout */
+        .player.expanded.video-mode-expanded .video-details-panel {
+            flex-direction: row;
+            /* Desktop video: side-by-side layout */
+            gap: 20px;
+        }
+
+        /* Desktop VIDEO MODE: Video + controls on left side */
+        .player.expanded.video-mode-expanded .video-details-panel .video-sticky-wrapper {
+            flex: 0 0 60%;
+            /* Left side: 60% width */
+            max-width: 60%;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            align-self: flex-start;
+            /* Stick to top */
+            height: fit-content;
+        }
+
+        /* Desktop VIDEO MODE: Details/comments/songs on right side */
+        .player.expanded.video-mode-expanded .video-details-panel #videoDetailsContent {
+            flex: 0 0 38%;
+            /* Right side: ~40% width */
+            max-width: 38%;
+            overflow-y: auto;
+            max-height: 70vh;
+        }
+
+        /* Video container inside wrapper */
+        .player.expanded .video-details-panel .video-container {
+            flex-shrink: 0;
+        }
+
+        /* Inline controls inside wrapper */
+        .player.expanded .video-details-panel .video-inline-controls {
+            margin-bottom: 15px;
+        }
+
+        /* Scrollable content area */
+        .player.expanded .video-details-panel .expandable-sections-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            scroll-behavior: smooth;
         }
 
         .details-section {
@@ -1268,6 +1402,218 @@
             color: #fff;
         }
 
+        /* ============================================
+           EXPANDABLE SECTION STYLES - Collapsible with Scroll
+           ============================================ */
+        .expandable-section {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .expandable-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s ease;
+        }
+
+        .expandable-header:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .expandable-header h3 {
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .expandable-header h3 i {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        /* Header with inline stats (Video Info section) */
+        .header-with-stats {
+            flex: 1;
+        }
+
+        .video-stats-inline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .stat-inline {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .stat-inline i {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Header with comment preview (Comments section) */
+        .header-with-preview {
+            flex: 1;
+            min-width: 0;
+            /* Allow truncation */
+        }
+
+        .comment-preview {
+            margin: 4px 0 0 0;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .expandable-header .toggle-icon {
+            transition: transform 0.3s ease;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Collapsed State - Content Hidden */
+        .expandable-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                padding 0.3s ease;
+            padding: 0 18px;
+        }
+
+        /* Expanded State - Content Visible with Scroll */
+        .expandable-section.expanded .expandable-content {
+            max-height: 40vh;
+            padding: 0 18px 18px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .expandable-section.expanded .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Comments Section - Scrollable List */
+        #commentsSection.expanded .expandable-content {
+            max-height: 35vh;
+        }
+
+        /* Suggested Songs Section - Scrollable List */
+        #suggestedSongsSection.expanded .expandable-content {
+            max-height: 45vh;
+        }
+
+        /* Video Details Section - Less scroll needed */
+        #videoDetailsSection.expanded .expandable-content {
+            max-height: 30vh;
+        }
+
+        /* ============================================
+           SUGGESTED SONGS SECTION STYLES
+           ============================================ */
+        .suggested-songs-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .suggested-song-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.15s ease;
+        }
+
+        .suggested-song-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateX(4px);
+        }
+
+        .suggested-song-item img {
+            width: 48px;
+            height: 48px;
+            border-radius: 6px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .suggested-song-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .suggested-song-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 2px;
+        }
+
+        .suggested-song-artist {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .suggested-song-duration {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            flex-shrink: 0;
+        }
+
+        /* Suggested Songs Section (plain, no expandable) */
+        .suggested-songs-section {
+            margin-top: 16px;
+        }
+
+        .section-header {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .section-header i {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Sections container for proper ordering */
+        .expandable-sections-wrapper {
+            display: flex;
+            flex-direction: column;
+            padding: 0 20px 20px;
+        }
 
         /* CD Player Animation */
         .cd-player {
@@ -1882,6 +2228,103 @@
                 padding: 20px;
                 max-width: 90%;
             }
+
+            /* Mobile - Expandable Sections */
+            .expandable-section {
+                margin-bottom: 10px;
+                border-radius: 10px;
+            }
+
+            .expandable-header {
+                padding: 12px 14px;
+            }
+
+            .expandable-header h3 {
+                font-size: 0.9rem;
+            }
+
+            /* Mobile: Use more viewport height since screen is taller */
+            .expandable-section.expanded .expandable-content {
+                max-height: 50vh;
+                padding: 0 14px 14px;
+            }
+
+            #commentsSection.expanded .expandable-content {
+                max-height: 45vh;
+            }
+
+            #suggestedSongsSection.expanded .expandable-content {
+                max-height: 55vh;
+            }
+
+            #videoDetailsSection.expanded .expandable-content {
+                max-height: 35vh;
+            }
+
+            .expandable-sections-wrapper {
+                padding: 0 0px 0px;
+            }
+
+            /* Mobile: Restore vertical layout for video details panel */
+            .player.expanded .video-details-panel {
+                flex-direction: column;
+                /* Stack vertically on mobile */
+            }
+
+            /* Mobile VIDEO MODE: full width and vertical layout */
+            .player.expanded.video-mode-expanded .video-details-panel {
+                flex-direction: column;
+                /* Override desktop row to column */
+                gap: 10px;
+                overflow-y: auto;
+            }
+
+            .player.expanded.video-mode-expanded .video-details-panel .video-sticky-wrapper {
+                flex: none;
+                max-width: 100%;
+                /* Full width on mobile */
+                width: 100%;
+                position: sticky;
+                /* Sticky on mobile - video + controls stay at top */
+                top: 0;
+                z-index: 10;
+            }
+
+            .player.expanded.video-mode-expanded .video-details-panel #videoDetailsContent {
+                flex: none;
+                max-width: 100%;
+                /* Full width on mobile */
+                width: 100%;
+                max-height: none;
+                overflow: visible;
+            }
+
+            /* Mobile - Sticky player layout */
+            .player.expanded {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .player.expanded .player-content {
+                flex-shrink: 0;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            .player.expanded .video-details-panel {
+                flex: 1;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                /* Smooth scroll on iOS */
+            }
+
+            /* Mobile - Video mode sticky video */
+            .player.expanded .video-details-panel .video-container.active {
+                position: sticky;
+                top: 0;
+                z-index: 6;
+            }
         }
 
         @media (max-width: 480px) {
@@ -1932,6 +2375,19 @@
 
             .songs-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+
+            /* Small Mobile - Even more vertical space for scrolling */
+            .expandable-section.expanded .expandable-content {
+                max-height: 55vh;
+            }
+
+            #commentsSection.expanded .expandable-content {
+                max-height: 50vh;
+            }
+
+            #suggestedSongsSection.expanded .expandable-content {
+                max-height: 60vh;
             }
         }
 
@@ -2174,6 +2630,144 @@
             height: 70px;
             font-size: 1.5rem;
         }
+
+        /* ============================================
+           EXPANDED VIDEO CONTAINER - YouTube-like centered layout
+           ============================================ */
+        .video-container.active {
+            display: block !important;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto 20px;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .video-container.active .video-player-wrapper {
+            display: block !important;
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 0 !important;
+        }
+
+        .video-container.active #videoPlayer,
+        .video-container.active .video-js {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain;
+            border-radius: 0 !important;
+        }
+
+        .video-container.active .video-controls-overlay {
+            border-radius: 0;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .video-container.active:hover .video-controls-overlay,
+        .video-container.active .video-controls-overlay.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .video-container.active .video-center-play {
+            width: 70px;
+            height: 70px;
+            font-size: 1.5rem;
+        }
+
+        .video-container.active .quality-menu {
+            bottom: 60px;
+            right: 15px;
+        }
+
+        .video-container.active .video-bottom-bar {
+            padding: 12px 15px;
+        }
+
+        .video-container.active .video-time {
+            font-size: 0.8rem;
+        }
+
+        /* ============================================
+           MOBILE RESPONSIVE - Expanded video
+           ============================================ */
+        @media (max-width: 768px) {
+            .video-container.active {
+                max-width: 100%;
+                border-radius: 8px;
+                margin: 0 auto 15px;
+            }
+
+            .video-container.active .video-center-play {
+                width: 55px;
+                height: 55px;
+                font-size: 1.2rem;
+            }
+
+            .video-container.active .quality-menu {
+                bottom: 50px;
+                right: 10px;
+                min-width: 100px;
+            }
+
+            .video-container.active .quality-option {
+                padding: 6px 10px;
+                font-size: 0.75rem;
+            }
+        }
+
+        /* ============================================
+           MOBILE - Unexpanded player adjustments
+           ============================================ */
+        @media (max-width: 768px) {
+
+            /* Smaller video wrapper in player bar for mobile */
+            .video-player-wrapper.video-mode {
+                width: 80px;
+                height: 80px;
+            }
+
+            /* Always show video controls on mobile (unexpanded) - touch-friendly */
+            .player-content .video-player-wrapper.video-mode .video-controls-overlay {
+                opacity: 1;
+                pointer-events: all;
+            }
+
+            /* Smaller center play button for mobile unexpanded */
+            .player-content .video-player-wrapper.video-mode .video-center-play {
+                width: 32px;
+                height: 32px;
+                font-size: 0.8rem;
+            }
+
+            /* Hide settings and progress in unexpanded mobile view (too small) */
+            .player-content .video-player-wrapper.video-mode .video-settings-btn,
+            .player-content .video-player-wrapper.video-mode .video-overlay-progress,
+            .player-content .video-player-wrapper.video-mode .video-time {
+                display: none;
+            }
+
+            /* Adjust video bottom bar for mobile unexpanded */
+            .player-content .video-player-wrapper.video-mode .video-bottom-bar {
+                display: none;
+            }
+        }
+
+        /* Desktop: Keep controls hidden until hover for unexpanded */
+        @media (min-width: 769px) {
+            .player-content .video-player-wrapper .video-controls-overlay {
+                opacity: 0;
+            }
+
+            .player-content .video-player-wrapper:hover .video-controls-overlay {
+                opacity: 1;
+                pointer-events: all;
+            }
+        }
     </style>
 </head>
 
@@ -2340,7 +2934,7 @@
                     <button class="control-btn" onclick="toggleShuffle()" id="shuffleBtn" style="opacity: 0.5;"
                         title="Shuffle"><i class="fas fa-random"></i></button>
                     <button class="control-btn" onclick="toggleVideoMode()" id="videoModeBtn" style="opacity: 0.3;"
-                        title="Toggle Video" disabled><i class="fas fa-video"></i></button>
+                        title="Toggle Video" disabled><i class="fas fa-tv"></i></button>
                 </div>
 
                 <div class="progress-container">
@@ -2356,12 +2950,47 @@
 
         <!-- Video Details Panel (Expandable) -->
         <div class="video-details-panel" id="videoDetailsPanel">
-            <!-- Video Container for YouTube mobile-style layout when expanded in video mode -->
-            <div class="video-container" id="expandedVideoContainer" style="display: none;">
-                <!-- Video will be displayed here when expanded in video mode -->
+            <!-- Sticky wrapper for video + controls (sticks together like audio mode) -->
+            <div class="video-sticky-wrapper">
+                <!-- Video Container for YouTube mobile-style layout when expanded in video mode -->
+                <div class="video-container" id="expandedVideoContainer" style="display: none;">
+                    <!-- Video will be displayed here when expanded in video mode -->
+                </div>
+
+                <!-- Inline Controls (shown below video in video mode expanded) -->
+                <div class="video-inline-controls" id="videoInlineControls">
+                    <div class="control-buttons">
+                        <button class="control-btn" onclick="previousSong()" title="Previous"><i
+                                class="fas fa-step-backward"></i></button>
+                        <button class="control-btn play-pause" onclick="togglePlay()" id="inlinePlayPauseBtn"
+                            title="Play/Pause"><i class="fas fa-play"></i></button>
+                        <button class="control-btn" onclick="stopSong()" title="Stop"><i
+                                class="fas fa-stop"></i></button>
+                        <button class="control-btn" onclick="nextSong()" title="Next"><i
+                                class="fas fa-step-forward"></i></button>
+                        <button class="control-btn" onclick="toggleShuffle()" id="inlineShuffleBtn"
+                            style="opacity: 0.5;" title="Shuffle"><i class="fas fa-random"></i></button>
+                        <button class="control-btn" onclick="toggleVideoMode()" id="inlineVideoModeBtn"
+                            title="Toggle Video"><i class="fas fa-tv"></i></button>
+                    </div>
+                    <div class="progress-container">
+                        <span class="time" id="inlineCurrentTime">0:00</span>
+                        <div class="progress-bar" id="inlineProgressBar">
+                            <div class="buffered-progress" id="inlineBufferedBar"></div>
+                            <div class="progress" id="inlineProgress"></div>
+                        </div>
+                        <span class="time" id="inlineDuration">0:00</span>
+                    </div>
+                </div>
             </div>
+
             <div id="videoDetailsContent">
-                <!-- Content will be loaded dynamically -->
+                <!-- Song Info (shown above video details in video mode) -->
+                <div class="video-song-info">
+                    <h3 id="videoSongTitle">No song playing</h3>
+                    <p id="videoSongArtist">Select a song to play</p>
+                </div>
+                <!-- Other content will be loaded dynamically -->
             </div>
         </div>
     </div>
@@ -2386,12 +3015,16 @@
     </div>
 
     <script>
-        const API_BASE = 'https://music-app-920748930700.europe-west1.run.app/api/v1';
+        const API_BASE = 'http://localhost:8000/api/v1';
         let token = localStorage.getItem('token');
         let currentPlaylist = [];
         let currentSongIndex = -1;
         let isPlaying = false;
-        let isShuffle = false;
+
+        // Playback Mode: 'off', 'shuffle', 'loop', 'repeat'
+        // off = normal sequential, shuffle = random, loop = loop all, repeat = repeat one
+        let playbackMode = 'off';
+
         let currentView = 'list';
 
         // Infinite Scroll State
@@ -2439,6 +3072,9 @@
             player.on('loadedmetadata', function () {
                 const duration = player.duration();
                 document.getElementById('duration').textContent = formatTime(duration);
+                // Sync inline controls
+                const inlineDuration = document.getElementById('inlineDuration');
+                if (inlineDuration) inlineDuration.textContent = formatTime(duration);
             });
 
             player.on('timeupdate', function () {
@@ -2449,6 +3085,12 @@
                     const progressPercent = (currentTime / duration) * 100;
                     document.getElementById('progressBar').style.width = progressPercent + '%';
                     document.getElementById('currentTime').textContent = formatTime(currentTime);
+
+                    // Sync inline controls
+                    const inlineProgress = document.getElementById('inlineProgress');
+                    const inlineCurrentTime = document.getElementById('inlineCurrentTime');
+                    if (inlineProgress) inlineProgress.style.width = progressPercent + '%';
+                    if (inlineCurrentTime) inlineCurrentTime.textContent = formatTime(currentTime);
                 }
 
                 // Also update video overlay controls
@@ -2463,6 +3105,10 @@
                     const bufferedEnd = buffered.end(buffered.length - 1);
                     const bufferedPercent = (bufferedEnd / duration) * 100;
                     document.getElementById('bufferedBar').style.width = bufferedPercent + '%';
+
+                    // Sync inline buffered bar
+                    const inlineBuffered = document.getElementById('inlineBufferedBar');
+                    if (inlineBuffered) inlineBuffered.style.width = bufferedPercent + '%';
                 }
             });
 
@@ -2480,6 +3126,9 @@
                 isPlaying = true;
                 document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
                 document.getElementById('albumDisk').classList.add('playing');
+                // Sync inline play button
+                const inlinePlayBtn = document.getElementById('inlinePlayPauseBtn');
+                if (inlinePlayBtn) inlinePlayBtn.innerHTML = '<i class="fas fa-pause"></i>';
                 updateVideoOverlay();  // Update video overlay play icon
             });
 
@@ -2487,6 +3136,9 @@
                 isPlaying = false;
                 document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
                 document.getElementById('albumDisk').classList.remove('playing');
+                // Sync inline play button
+                const inlinePlayBtn = document.getElementById('inlinePlayPauseBtn');
+                if (inlinePlayBtn) inlinePlayBtn.innerHTML = '<i class="fas fa-play"></i>';
                 updateVideoOverlay();  // Update video overlay play icon
             });
         });
@@ -2788,6 +3440,10 @@
                 document.getElementById('albumArt').src = song.thumbnail || 'https://via.placeholder.com/120';
                 document.getElementById('albumDisk').classList.add('playing');
 
+                // Sync video mode song info
+                document.getElementById('videoSongTitle').textContent = song.title;
+                document.getElementById('videoSongArtist').textContent = song.artist;
+
                 // Reset progress bars
                 document.getElementById('progressBar').style.width = '0%';
                 document.getElementById('bufferedBar').style.width = '0%';
@@ -2911,6 +3567,7 @@
             const cdDisc = document.getElementById('albumDisk');
             const videoWrapper = document.getElementById('videoPlayerWrapper');
             const videoElement = document.getElementById('videoPlayer');
+            const playerEl = document.getElementById('musicPlayer');
 
             if (isVideoMode && hasVideoStream) {
                 // Video mode: show video, hide disc
@@ -2921,10 +3578,25 @@
                 if (videoElement.parentElement !== videoWrapper) {
                     videoWrapper.appendChild(videoElement);
                 }
+
+                // If player is expanded, handle video expansion
+                if (isPlayerExpanded) {
+                    handleVideoExpansion(true);
+                }
             } else {
                 // Audio-only mode: hide video, show disc
                 cdDisc.style.display = 'flex';
                 videoWrapper.classList.remove('video-mode');
+
+                // Remove video-mode-expanded class in audio mode
+                playerEl.classList.remove('video-mode-expanded');
+
+                // If player is expanded and we switched to audio mode, collapse video container
+                if (isPlayerExpanded) {
+                    const expandedContainer = document.getElementById('expandedVideoContainer');
+                    expandedContainer.style.display = 'none';
+                    expandedContainer.classList.remove('active');
+                }
             }
 
             // Update video center play button icon
@@ -3152,10 +3824,30 @@
         function nextSong() {
             if (currentPlaylist.length === 0) return;
 
-            if (isShuffle) {
-                currentSongIndex = Math.floor(Math.random() * currentPlaylist.length);
-            } else {
-                currentSongIndex = (currentSongIndex + 1) % currentPlaylist.length;
+            switch (playbackMode) {
+                case 'shuffle':
+                    // Random song (excluding current)
+                    let newIndex = currentSongIndex;
+                    while (newIndex === currentSongIndex && currentPlaylist.length > 1) {
+                        newIndex = Math.floor(Math.random() * currentPlaylist.length);
+                    }
+                    currentSongIndex = newIndex;
+                    break;
+                case 'repeat':
+                    // Repeat current song - stay on same index
+                    break;
+                case 'loop':
+                    // Loop all - wrap around
+                    currentSongIndex = (currentSongIndex + 1) % currentPlaylist.length;
+                    break;
+                default: // 'off'
+                    // Normal sequential - stop at end
+                    if (currentSongIndex < currentPlaylist.length - 1) {
+                        currentSongIndex++;
+                    } else {
+                        // Reached end - optionally stop or loop
+                        currentSongIndex = 0; // Loop to beginning
+                    }
             }
             playSong(currentPlaylist[currentSongIndex]);
         }
@@ -3167,10 +3859,60 @@
             playSong(currentPlaylist[currentSongIndex]);
         }
 
-        // Shuffle
+        // Playback Mode Toggle: off → shuffle → loop → repeat → off
+        // Icons: fa-random (shuffle), fa-redo (loop), fa-redo-alt (repeat one)
         function toggleShuffle() {
-            isShuffle = !isShuffle;
-            document.getElementById('shuffleBtn').style.opacity = isShuffle ? '1' : '0.5';
+            // Cycle through modes
+            const modes = ['off', 'shuffle', 'loop', 'repeat'];
+            const currentIndex = modes.indexOf(playbackMode);
+            playbackMode = modes[(currentIndex + 1) % modes.length];
+
+            updatePlaybackModeUI();
+            console.log('Playback mode:', playbackMode);
+        }
+
+        // Update button icons and opacity based on current mode
+        function updatePlaybackModeUI() {
+            const shuffleBtn = document.getElementById('shuffleBtn');
+            const inlineShuffleBtn = document.getElementById('inlineShuffleBtn');
+
+            let icon, title, opacity;
+
+            switch (playbackMode) {
+                case 'shuffle':
+                    icon = 'fa-random';
+                    title = 'Shuffle (click for Loop All)';
+                    opacity = '1';
+                    break;
+                case 'loop':
+                    icon = 'fa-redo';
+                    title = 'Loop All (click for Repeat One)';
+                    opacity = '1';
+                    break;
+                case 'repeat':
+                    icon = 'fa-sync';
+                    title = 'Repeat One (click to turn Off)';
+                    opacity = '1';
+                    break;
+                default: // 'off'
+                    icon = 'fa-random';
+                    title = 'Playback Mode: Off (click for Shuffle)';
+                    opacity = '0.5';
+            }
+
+            // Update main button
+            if (shuffleBtn) {
+                shuffleBtn.innerHTML = `<i class="fas ${icon}"></i>`;
+                shuffleBtn.style.opacity = opacity;
+                shuffleBtn.title = title;
+            }
+
+            // Update inline button
+            if (inlineShuffleBtn) {
+                inlineShuffleBtn.innerHTML = `<i class="fas ${icon}"></i>`;
+                inlineShuffleBtn.style.opacity = opacity;
+                inlineShuffleBtn.title = title;
+            }
         }
 
         // Improved seeking with visual feedback (Desktop + Mobile) - Video.js
@@ -3516,8 +4258,64 @@
                 if (currentVideoId) {
                     loadVideoDetails(currentVideoId);
                 }
+                // Handle video mode expansion
+                handleVideoExpansion(true);
             } else {
                 player.classList.remove('expanded');
+                // Handle video mode collapse
+                handleVideoExpansion(false);
+            }
+        }
+
+        /**
+         * Handle video element positioning when expanding/collapsing player
+         */
+        function handleVideoExpansion(expand) {
+            const expandedContainer = document.getElementById('expandedVideoContainer');
+            const videoWrapper = document.getElementById('videoPlayerWrapper');
+            const playerContent = document.querySelector('.player-content');
+            const albumDisk = document.getElementById('albumDisk');
+            const playerEl = document.getElementById('musicPlayer');
+
+            if (expand && isVideoMode && hasVideoStream) {
+                // Add video-mode-expanded class for layout reordering
+                playerEl.classList.add('video-mode-expanded');
+
+                // Show expanded video container
+                expandedContainer.style.display = 'block';
+                expandedContainer.classList.add('active');
+
+                // Move video wrapper to expanded container
+                if (videoWrapper.parentElement !== expandedContainer) {
+                    expandedContainer.appendChild(videoWrapper);
+                }
+
+                // Ensure video mode class is set
+                videoWrapper.classList.add('video-mode');
+
+                // Update quality menu rendering for expanded view
+                renderQualityOptions();
+
+            } else if (!expand) {
+                // Remove video-mode-expanded class
+                playerEl.classList.remove('video-mode-expanded');
+
+                // Hide expanded container
+                expandedContainer.style.display = 'none';
+                expandedContainer.classList.remove('active');
+
+                // Move video wrapper back to player content (after album disk)
+                if (videoWrapper.parentElement !== playerContent) {
+                    // Insert after albumDisk
+                    if (albumDisk && albumDisk.nextSibling) {
+                        playerContent.insertBefore(videoWrapper, albumDisk.nextSibling);
+                    } else {
+                        playerContent.appendChild(videoWrapper);
+                    }
+                }
+            } else {
+                // Audio mode - make sure video-mode-expanded is removed
+                playerEl.classList.remove('video-mode-expanded');
             }
         }
 
@@ -3560,7 +4358,7 @@
         }
 
         /**
-         * Render video details and comments
+         * Render video details and comments with expandable sections
          */
         function renderVideoDetails(video, commentsData) {
             const contentDiv = document.getElementById('videoDetailsContent');
@@ -3578,64 +4376,120 @@
                 return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
             };
 
-            // Build HTML
+            // Build HTML with expandable sections
+            // Video Details expanded by default, Comments and Suggested Songs collapsed
+
+            // Get current song info from main player
+            const songTitle = document.getElementById('currentSongTitle').textContent || 'No song playing';
+            const songArtist = document.getElementById('currentSongArtist').textContent || 'Select a song to play';
+
+            // Start with song info at top (visible in video mode)
             let html = `
-                <!-- Video Information -->
-                <div class="details-section">
-                    <h3><i class="fas fa-info-circle"></i> Video Information</h3>
-                    <div class="video-stats">
-                        <div class="stat-item">
-                            <i class="fas fa-eye"></i>
-                            <span>${formatNumber(video.view_count)} views</span>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fas fa-thumbs-up"></i>
-                            <span>${formatNumber(video.like_count)} likes</span>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fas fa-comment"></i>
-                            <span>${formatNumber(video.comment_count)} comments</span>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fas fa-calendar"></i>
-                            <span>${formatDate(video.published_at)}</span>
-                        </div>
-                    </div>
-                    ${video.description ? `
-                        <h4 style="margin-top: 15px; margin-bottom: 10px; font-size: 1rem;">Description</h4>
-                        <div class="video-description">${escapeHtml(video.description)}</div>
-                    ` : ''}
+                <div class="video-song-info">
+                    <h3 id="videoSongTitle">${songTitle}</h3>
+                    <p id="videoSongArtist">${songArtist}</p>
                 </div>
             `;
 
-            // Add comments section
-            if (commentsData && commentsData.comments && commentsData.comments.length > 0) {
-                html += `
-                    <div class="details-section">
-                        <h3><i class="fas fa-comments"></i> Comments (${commentsData.total_results})</h3>
-                        <div class="comments-container">
-                `;
+            html += `<div class="expandable-sections-wrapper">`;
 
+            // Video Information - Expandable Section (EXPANDED by default)
+            // Stats shown in HEADER (always visible), Description in expandable content
+            html += `
+                <div class="expandable-section expanded" id="videoDetailsSection">
+                    <div class="expandable-header" onclick="toggleSection('videoDetailsSection')">
+                        <div class="header-with-stats">
+                            <div class="video-stats-inline">
+                                <span class="stat-inline"><i class="fas fa-eye"></i> ${formatNumber(video.view_count)}</span>
+                                <span class="stat-inline"><i class="fas fa-thumbs-up"></i> ${formatNumber(video.like_count)}</span>
+                                <span class="stat-inline"><i class="fas fa-comment"></i> ${formatNumber(video.comment_count)}</span>
+                                <span class="stat-inline"><i class="fas fa-calendar"></i> ${formatDate(video.published_at)}</span>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <div class="expandable-content">
+                        ${video.description ? `
+                            <h4 style="margin-top: 5px; margin-bottom: 10px; font-size: 0.95rem;">Description</h4>
+                            <div class="video-description">${escapeHtml(video.description)}</div>
+                        ` : '<p style="opacity: 0.7; padding: 10px;">No description available</p>'}
+                    </div>
+                </div>
+            `;
+
+            // Comments - Expandable Section (collapsed by default, scrollable)
+            // Header shows first comment preview
+            if (commentsData && commentsData.comments && commentsData.comments.length > 0) {
+                let commentsHtml = '';
                 commentsData.comments.forEach(comment => {
-                    html += renderComment(comment, formatDate);
+                    commentsHtml += renderComment(comment, formatDate);
                 });
 
+                // Get first comment preview (truncate to 80 chars)
+                const firstComment = commentsData.comments[0];
+                const commentPreview = firstComment.text.length > 80
+                    ? firstComment.text.substring(0, 80) + '...'
+                    : firstComment.text;
+
                 html += `
+                    <div class="expandable-section" id="commentsSection">
+                        <div class="expandable-header" onclick="toggleSection('commentsSection')">
+                            <div class="header-with-preview">
+                                <h3><i class="fas fa-comments"></i> Comments (${commentsData.total_results})</h3>
+                                <p class="comment-preview">"${escapeHtml(commentPreview)}"</p>
+                            </div>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <div class="expandable-content">
+                            <div class="comments-container">
+                                ${commentsHtml}
+                            </div>
                         </div>
                     </div>
                 `;
             } else if (commentsData && commentsData.disabled) {
                 html += `
-                    <div class="details-section">
-                        <h3><i class="fas fa-comments"></i> Comments</h3>
-                        <p style="text-align: center; padding: 20px; opacity: 0.7;">
-                            <i class="fas fa-ban"></i> Comments are disabled for this video
-                        </p>
+                    <div class="expandable-section" id="commentsSection">
+                        <div class="expandable-header" onclick="toggleSection('commentsSection')">
+                            <div class="header-with-preview">
+                                <h3><i class="fas fa-comments"></i> Comments</h3>
+                                <p class="comment-preview" style="opacity: 0.6;"><i class="fas fa-ban"></i> Comments disabled</p>
+                            </div>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <div class="expandable-content">
+                            <p style="text-align: center; padding: 20px; opacity: 0.7;">
+                                <i class="fas fa-ban"></i> Comments are disabled for this video
+                            </p>
+                        </div>
                     </div>
                 `;
             }
 
+            // Suggested Songs - Plain list (no expandable container)
+            html += `
+                <div class="suggested-songs-section">
+                    <h3 class="section-header"><i class="fas fa-music"></i> Suggested Songs</h3>
+                    <div class="suggested-songs-list" id="suggestedSongsList">
+                        <p style="text-align: center; padding: 20px; opacity: 0.7;">
+                            <i class="fas fa-headphones"></i> Suggested songs coming soon
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            html += `</div>`;  // Close expandable-sections-wrapper
             contentDiv.innerHTML = html;
+        }
+
+        /**
+         * Toggle expand/collapse of a section
+         */
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.classList.toggle('expanded');
+            }
         }
 
         /**
