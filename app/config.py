@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     YOUTUBE_API_SERVICE_NAME: str = "youtube"
     YOUTUBE_API_VERSION: str = "v3"
 
+    # Google AI (Gemini) for song info enrichment
+    GOOGLE_AI_API_KEY: str = ""
+
     class Config:
         env_file = ".env"
         case_sensitive = True

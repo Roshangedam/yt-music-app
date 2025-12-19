@@ -1618,6 +1618,186 @@
             color: rgba(255, 255, 255, 0.95);
         }
 
+        /* ============================================
+           SONG INFO SECTION STYLES
+           ============================================ */
+        .song-info-section {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            overflow: hidden;
+        }
+
+        .song-info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s ease;
+        }
+
+        .song-info-header:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .song-info-header h3 {
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .song-info-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
+            padding: 0 18px;
+        }
+
+        .song-info-section.expanded .song-info-content {
+            max-height: 500px;
+            padding: 0 18px 18px;
+            overflow-y: auto;
+        }
+
+        .song-info-section.expanded .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .song-info-loading {
+            text-align: center;
+            padding: 30px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .song-info-loading i {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Credit Cards */
+        .credit-card {
+            display: flex;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+
+        .credit-card.main-artist {
+            padding: 18px;
+        }
+
+        .credit-photo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(102, 126, 234, 0.5);
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .credit-card.main-artist .credit-photo {
+            width: 70px;
+            height: 70px;
+        }
+
+        .credit-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .credit-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 2px;
+        }
+
+        .credit-role {
+            font-size: 0.75rem;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 6px;
+        }
+
+        .credit-bio {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.4;
+        }
+
+        /* Two-column layout for Music Director & Lyricist */
+        .credits-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .credits-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .credits-row .credit-card {
+            margin-bottom: 0;
+        }
+
+        .credits-row .credit-photo {
+            width: 50px;
+            height: 50px;
+        }
+
+        .credits-row .credit-name {
+            font-size: 0.9rem;
+        }
+
+        .credits-row .credit-bio {
+            font-size: 0.8rem;
+        }
+
+        /* Movie Info */
+        .movie-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 15px;
+            background: rgba(102, 126, 234, 0.15);
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .movie-info i {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Default avatar placeholder */
+        .credit-photo-placeholder {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.5);
+            flex-shrink: 0;
+        }
+
         .section-header i {
             color: rgba(255, 255, 255, 0.7);
         }
@@ -3327,7 +3507,12 @@
 
         // Video.js Player State
         let player = null;
-        let isVideoMode = false;  // Track audio-only vs video mode
+
+        // Video Settings - Load from localStorage with defaults
+        let videoSettings = loadVideoSettings();
+        let isVideoMode = videoSettings.preferVideoMode;  // User's preferred mode
+        let preferredQuality = videoSettings.preferredQuality;  // User's preferred quality (default: 480p)
+
         let hasVideoStream = false;  // Track if current song has video available
         let currentStreamInfo = null;  // Store current stream info for mode switching
 
@@ -3336,6 +3521,247 @@
         let currentQuality = 'audio_only';
         let qualityMenuVisible = false;
         let controlsHideTimeout = null;
+
+        // Song Info State
+        let songInfoCache = {};
+        let isSongInfoLoading = false;
+        let isSongInfoExpanded = false;
+
+        // Load video settings from localStorage
+        function loadVideoSettings() {
+            const saved = localStorage.getItem('videoSettings');
+            if (saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch (e) {
+                    console.error('Error loading video settings:', e);
+                }
+            }
+            // Default settings: audio mode, 480p quality
+            return {
+                preferVideoMode: false,
+                preferredQuality: '480p'
+            };
+        }
+
+        // Save video settings to localStorage
+        function saveVideoSettings() {
+            const settings = {
+                preferVideoMode: isVideoMode,
+                preferredQuality: preferredQuality
+            };
+            localStorage.setItem('videoSettings', JSON.stringify(settings));
+            console.log('Video settings saved:', settings);
+        }
+
+        // ============================================
+        // SONG INFO SECTION FUNCTIONS
+        // ============================================
+
+        // Toggle Song Info section expand/collapse
+        function toggleSongInfoSection() {
+            const section = document.getElementById('songInfoSection');
+            const content = document.getElementById('songInfoContent');
+
+            isSongInfoExpanded = !isSongInfoExpanded;
+            section.classList.toggle('expanded', isSongInfoExpanded);
+
+            // Lazy load: fetch data only when expanding and not already loaded
+            if (isSongInfoExpanded && currentVideoId) {
+                const song = currentPlaylist[currentSongIndex];
+                if (song && !songInfoCache[currentVideoId]) {
+                    fetchSongInfo(currentVideoId, song.title, song.artist);
+                } else if (songInfoCache[currentVideoId]) {
+                    renderSongInfo(songInfoCache[currentVideoId]);
+                }
+            }
+        }
+
+        // Fetch song info from API
+        async function fetchSongInfo(videoId, songName, artist) {
+            if (isSongInfoLoading) return;
+
+            isSongInfoLoading = true;
+            const content = document.getElementById('songInfoContent');
+
+            // Show loading spinner
+            content.innerHTML = `
+                <div class="song-info-loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <div>Loading song info...</div>
+                </div>
+            `;
+
+            try {
+                const params = new URLSearchParams({
+                    song_name: songName || '',
+                    artist: artist || ''
+                });
+
+                const response = await fetch(`${API_BASE}/music/song-info/${videoId}?${params}`);
+                const data = await response.json();
+
+                // Cache the result
+                songInfoCache[videoId] = data;
+
+                // Only render if still on same song
+                if (currentVideoId === videoId) {
+                    renderSongInfo(data);
+                }
+            } catch (error) {
+                console.error('Error fetching song info:', error);
+                content.innerHTML = `
+                    <div class="song-info-loading">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <div>Failed to load song info</div>
+                    </div>
+                `;
+            } finally {
+                isSongInfoLoading = false;
+            }
+        }
+
+        // Render song info content
+        function renderSongInfo(data) {
+            const content = document.getElementById('songInfoContent');
+            let html = '';
+
+            // Singer card (always shown)
+            const singer = data.singer || {};
+            const singerPhoto = singer.photo_base64 || null;
+
+            html += `<div class="credit-card main-artist">`;
+            if (singerPhoto) {
+                html += `<img class="credit-photo" src="${singerPhoto}" alt="${singer.name || 'Artist'}" onerror="this.style.display='none'">`;
+            } else {
+                html += `<div class="credit-photo-placeholder"><i class="fas fa-music"></i></div>`;
+            }
+            html += `
+                <div class="credit-info">
+                    <div class="credit-name">${singer.name || 'Unknown Artist'}</div>
+                    <div class="credit-role">${singer.role || 'Singer'}</div>
+                    ${singer.bio ? `<div class="credit-bio">${singer.bio}</div>` : ''}
+                </div>
+            </div>`;
+
+            // Music Director & Lyricist row
+            const musicDir = data.music_director;
+            const lyricist = data.lyricist;
+
+            if (musicDir || lyricist) {
+                html += `<div class="credits-row">`;
+
+                // Music Director
+                if (musicDir && musicDir.name) {
+                    const mdPhoto = musicDir.photo_base64 || null;
+                    html += `<div class="credit-card">`;
+                    if (mdPhoto) {
+                        html += `<img class="credit-photo" src="${mdPhoto}" alt="${musicDir.name}" onerror="this.style.display='none'">`;
+                    } else {
+                        html += `<div class="credit-photo-placeholder" style="width:50px;height:50px;font-size:1rem;"><i class="fas fa-headphones"></i></div>`;
+                    }
+                    html += `
+                        <div class="credit-info">
+                            <div class="credit-name">${musicDir.name}</div>
+                            <div class="credit-role">${musicDir.role || 'Music Director'}</div>
+                            ${musicDir.bio ? `<div class="credit-bio">${musicDir.bio}</div>` : ''}
+                        </div>
+                    </div>`;
+                }
+
+                // Lyricist
+                if (lyricist && lyricist.name) {
+                    const lyrPhoto = lyricist.photo_base64 || null;
+                    html += `<div class="credit-card">`;
+                    if (lyrPhoto) {
+                        html += `<img class="credit-photo" src="${lyrPhoto}" alt="${lyricist.name}" onerror="this.style.display='none'">`;
+                    } else {
+                        html += `<div class="credit-photo-placeholder" style="width:50px;height:50px;font-size:1rem;"><i class="fas fa-pen"></i></div>`;
+                    }
+                    html += `
+                        <div class="credit-info">
+                            <div class="credit-name">${lyricist.name}</div>
+                            <div class="credit-role">${lyricist.role || 'Lyricist'}</div>
+                            ${lyricist.bio ? `<div class="credit-bio">${lyricist.bio}</div>` : ''}
+                        </div>
+                    </div>`;
+                }
+
+                html += `</div>`;
+            }
+
+            // Movie info
+            if (data.movie) {
+                html += `
+                    <div class="movie-info">
+                        <i class="fas fa-film"></i>
+                        <span>${data.movie}${data.year ? ` (${data.year})` : ''}</span>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = html;
+        }
+
+        // Reset song info when song changes
+        function resetSongInfo() {
+            isSongInfoExpanded = false;
+            isSongInfoLoading = false;
+            const section = document.getElementById('songInfoSection');
+            const content = document.getElementById('songInfoContent');
+            if (section) section.classList.remove('expanded');
+            if (content) content.innerHTML = '';
+        }
+
+        // Set default video mode from settings dialog
+        function setDefaultVideoMode(useVideo) {
+            isVideoMode = useVideo;
+            saveVideoSettings();
+
+            // Update button states
+            const audioBtn = document.getElementById('settingsAudioModeBtn');
+            const videoBtn = document.getElementById('settingsVideoModeBtn');
+
+            if (audioBtn && videoBtn) {
+                audioBtn.classList.toggle('active', !useVideo);
+                videoBtn.classList.toggle('active', useVideo);
+            }
+
+            // Apply to current playback if a song is playing
+            if (hasVideoStream) {
+                applyPlaybackMode();
+
+                // Update video toggle button
+                const mainVideoBtn = document.getElementById('videoModeBtn');
+                if (mainVideoBtn) {
+                    mainVideoBtn.classList.toggle('active', useVideo);
+                    mainVideoBtn.style.opacity = useVideo ? '1' : '0.6';
+                }
+            }
+        }
+
+        // Set default quality from settings dialog
+        function setDefaultQuality(quality) {
+            preferredQuality = quality;
+            saveVideoSettings();
+            console.log('Default quality set to:', quality);
+        }
+
+        // Update video settings UI when dialog opens
+        function updateVideoSettingsUI() {
+            const audioBtn = document.getElementById('settingsAudioModeBtn');
+            const videoBtn = document.getElementById('settingsVideoModeBtn');
+            const qualitySelect = document.getElementById('settingsQualitySelect');
+
+            if (audioBtn && videoBtn) {
+                audioBtn.classList.toggle('active', !isVideoMode);
+                videoBtn.classList.toggle('active', isVideoMode);
+            }
+
+            if (qualitySelect) {
+                qualitySelect.value = preferredQuality;
+            }
+        }
 
         // Initialize Video.js player on page load
         document.addEventListener('DOMContentLoaded', function () {
@@ -3771,6 +4197,9 @@
         // Play Song with Video.js and instant feedback
         async function playSong(song) {
             try {
+                // Reset song info panel when playing new song
+                resetSongInfo();
+
                 // Show loading state immediately
                 document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
@@ -3840,6 +4269,31 @@
                     videoBtn.style.opacity = '1';
                     videoBtn.disabled = false;
                     videoBtn.title = 'Toggle Video Mode';
+
+                    // Apply saved video mode preference if user prefers video
+                    if (isVideoMode) {
+                        // Find preferred quality or nearest
+                        const videoQualities = availableQualities.filter(q => q.is_video);
+                        let targetQuality = videoQualities.find(q => q.quality_id === preferredQuality);
+
+                        if (!targetQuality && videoQualities.length > 0) {
+                            const preferredHeight = parseInt(preferredQuality) || 480;
+                            targetQuality = videoQualities.reduce((prev, curr) => {
+                                const prevDiff = Math.abs((prev?.height || 0) - preferredHeight);
+                                const currDiff = Math.abs((curr.height || 0) - preferredHeight);
+                                return currDiff < prevDiff ? curr : prev;
+                            }, videoQualities[0]);
+                        }
+
+                        if (targetQuality) {
+                            currentQuality = targetQuality.quality_id;
+                        }
+
+                        // Update button style to show active state
+                        videoBtn.classList.add('active');
+                    } else {
+                        videoBtn.classList.remove('active');
+                    }
                 } else {
                     videoBtn.style.opacity = '0.3';
                     videoBtn.disabled = true;
@@ -3853,6 +4307,7 @@
 
                 // If in video mode and video stream is available, use video URL
                 if (isVideoMode && hasVideoStream && streamInfo.video_url) {
+                    streamUrl = streamInfo.video_url;  // Use actual video stream URL
                     mimeType = streamInfo.video_mime_type || 'video/mp4';
                 }
 
@@ -4140,9 +4595,26 @@
                 // Currently video, switch to audio
                 targetQuality = availableQualities.find(q => !q.is_video);
             } else {
-                // Currently audio, switch to best video
+                // Currently audio, switch to video - try to use preferred quality first
                 const videoQualities = availableQualities.filter(q => q.is_video);
-                targetQuality = videoQualities[videoQualities.length - 1]; // Highest quality
+
+                // Try preferred quality first
+                targetQuality = videoQualities.find(q => q.quality_id === preferredQuality);
+
+                // If preferred not available, use nearest quality
+                if (!targetQuality) {
+                    const preferredHeight = parseInt(preferredQuality) || 480;
+                    targetQuality = videoQualities.reduce((prev, curr) => {
+                        const prevDiff = Math.abs((prev?.height || 0) - preferredHeight);
+                        const currDiff = Math.abs((curr.height || 0) - preferredHeight);
+                        return currDiff < prevDiff ? curr : prev;
+                    }, videoQualities[0]);
+                }
+
+                // Fallback to highest quality
+                if (!targetQuality) {
+                    targetQuality = videoQualities[videoQualities.length - 1];
+                }
             }
 
             if (targetQuality) {
@@ -4155,6 +4627,9 @@
                 const videoBtn = document.getElementById('videoModeBtn');
                 videoBtn.style.opacity = isVideoMode ? '1' : '0.6';
             }
+
+            // Save video mode preference to localStorage
+            saveVideoSettings();
         }
 
         // Seek in video overlay progress bar
@@ -4834,6 +5309,19 @@
                 </div>
             `;
 
+            // Song Info - Expandable Section (collapsed by default, lazy loads when expanded)
+            html += `
+                <div class="song-info-section" id="songInfoSection">
+                    <div class="song-info-header" onclick="toggleSongInfoSection()">
+                        <h3><i class="fas fa-user-circle"></i> Song Info</h3>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <div class="song-info-content" id="songInfoContent">
+                        <!-- Loaded dynamically when expanded -->
+                    </div>
+                </div>
+            `;
+
             // Comments - Expandable Section (collapsed by default, scrollable)
             // Header shows first comment preview
             if (commentsData && commentsData.comments && commentsData.comments.length > 0) {
@@ -4979,6 +5467,9 @@
             const overlay = document.getElementById('settingsDialog');
             overlay.classList.add('active');
             document.body.style.overflow = 'hidden'; // Prevent background scroll
+
+            // Update video settings UI to match current values
+            updateVideoSettingsUI();
         }
 
         function closeSettingsDialog() {
@@ -5091,6 +5582,44 @@
                             </button>
                         </div>
                         <p id="loggedCookiesStatus" style="margin-top: 8px; font-size: 0.9rem;"></p>
+                    </div>
+                </div>
+
+                <!-- Video Settings -->
+                <div class="settings-section">
+                    <h3>Video Settings</h3>
+                    <div class="settings-option">
+                        <div class="settings-option-label">
+                            <i class="fas fa-play-circle"></i>
+                            Default Playback Mode
+                        </div>
+                        <div class="settings-option-description">
+                            Choose whether to start in audio-only or video mode
+                        </div>
+                        <div class="view-toggle" style="margin-top: 10px;">
+                            <button class="view-btn" id="settingsAudioModeBtn" onclick="setDefaultVideoMode(false)">
+                                <i class="fas fa-music"></i> Audio Only
+                            </button>
+                            <button class="view-btn" id="settingsVideoModeBtn" onclick="setDefaultVideoMode(true)">
+                                <i class="fas fa-video"></i> Video Mode
+                            </button>
+                        </div>
+                    </div>
+                    <div class="settings-option" style="margin-top: 15px;">
+                        <div class="settings-option-label">
+                            <i class="fas fa-sliders-h"></i>
+                            Default Video Quality
+                        </div>
+                        <div class="settings-option-description">
+                            Choose the default video quality (480p recommended for balance)
+                        </div>
+                        <select id="settingsQualitySelect" onchange="setDefaultQuality(this.value)"
+                            style="width: 100%; padding: 10px; margin-top: 10px; border-radius: 8px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);">
+                            <option value="360p">360p (Low)</option>
+                            <option value="480p" selected>480p (Recommended)</option>
+                            <option value="720p">720p (HD)</option>
+                            <option value="1080p">1080p (Full HD)</option>
+                        </select>
                     </div>
                 </div>
             </div>

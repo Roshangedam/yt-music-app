@@ -58,6 +58,45 @@ async def get_song_details(
         raise HTTPException(status_code=404, detail="Song not found")
     return song
 
+
+@router.get("/song-info/{video_id}")
+async def get_song_info(
+    video_id: str,
+    song_name: str = Query(..., description="Song title"),
+    artist: str = Query("", description="Artist name hint")
+):
+    """
+    Get enriched song information including artist bios and photos.
+    
+    Returns singer, music director, lyricist info with:
+    - Name and role
+    - 2-3 line biography
+    - Base64 encoded photo
+    - Movie/album name and year
+    
+    Results are cached for 24 hours.
+    """
+    from app.services.song_info_service import song_info_service
+    
+    try:
+        info = await song_info_service.get_song_info_async(video_id, song_name, artist)
+        return info
+    except Exception as e:
+        logger.error(f"Song info error: {e}")
+        # Return basic fallback response on error
+        return {
+            "singer": {
+                "name": artist or "Unknown Artist",
+                "role": "Singer",
+                "bio": None,
+                "photo_base64": None
+            },
+            "music_director": None,
+            "lyricist": None,
+            "movie": None,
+            "year": None
+        }
+
 @router.get("/stream/info/{video_id}", response_model=StreamInfo)
 async def get_stream_info(
     video_id: str,
