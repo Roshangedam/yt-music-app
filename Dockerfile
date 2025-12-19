@@ -45,7 +45,7 @@ RUN playwright install chromium --with-deps || echo "Playwright browser install 
 
 # Verify versions
 RUN python -c "import yt_dlp; print(f'yt-dlp version: {yt_dlp.version.__version__}')"
-RUN python -c "try:\n    from playwright.sync_api import sync_playwright\n    print('Playwright installed successfully')\nexcept ImportError:\n    print('Playwright not available - will use HTTP fallback')"
+#RUN python -c "try:\n    from playwright.sync_api import sync_playwright\n    print('Playwright installed successfully')\nexcept ImportError:\n    print('Playwright not available - will use HTTP fallback')"
 
 # Copy application
 COPY . .
