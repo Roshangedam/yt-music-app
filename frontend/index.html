@@ -1784,6 +1784,16 @@
             color: rgba(255, 255, 255, 0.6);
         }
 
+        .source-info-detail {
+            padding: 8px 15px;
+            background: rgba(102, 126, 234, 0.08);
+            border-radius: 0 0 8px 8px;
+            margin-top: -8px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.4;
+        }
+
         /* Default avatar placeholder */
         .credit-photo-placeholder {
             width: 60px;
@@ -3481,7 +3491,7 @@
     </div>
 
     <script>
-        const API_BASE = 'https://music-app-920748930700.europe-west1.run.app/api/v1';
+        const API_BASE = 'http://localhost:8000/api/v1';
         let token = localStorage.getItem('token');
         let currentPlaylist = [];
         let currentSongIndex = -1;
@@ -3698,6 +3708,14 @@
                         <span>${data.movie}${data.year ? ` (${data.year})` : ''}</span>
                     </div>
                 `;
+                // Show extra movie info if available
+                if (data.movie_info) {
+                    html += `
+                        <div class="source-info-detail">
+                            <small>${data.movie_info}</small>
+                        </div>
+                    `;
+                }
             }
 
             content.innerHTML = html;
@@ -4228,6 +4246,7 @@
                 currentStreamInfo = streamInfo;
 
                 console.log('StreamInfo:', streamInfo);
+
 
                 // Check if video stream is available
                 hasVideoStream = streamInfo.has_video === true;

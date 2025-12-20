@@ -113,180 +113,187 @@ class HttpScrapingStrategy(MetadataProviderStrategy):
 # STRATEGY 2: Async Playwright (Browser automation)
 # ============================================================================
 
-class AsyncPlaywrightStrategy(MetadataProviderStrategy):
-    """Browser automation using Async Playwright for reliable scraping"""
-    
-    def __init__(self):
-        self._browser = None
-        self._playwright = None
-        self._lock = asyncio.Lock()
-    
-    async def _ensure_browser(self):
-        """Lazy initialization of Playwright browser"""
-        async with self._lock:
-            if self._browser is None:
-                try:
-                    from playwright.async_api import async_playwright
-                    self._playwright = await async_playwright().start()
-                    self._browser = await self._playwright.chromium.launch(
-                        headless=True,
-                        args=[
-                            '--no-sandbox',
-                            '--disable-setuid-sandbox',
-                            '--disable-dev-shm-usage',
-                            '--disable-gpu',
-                            '--single-process',
-                            '--no-zygote'
-                        ]
-                    )
-                    logger.info("[Playwright] Browser initialized (async mode)")
-                except ImportError:
-                    logger.warning("[Playwright] Not installed. Run: pip install playwright && playwright install chromium")
-                    raise
-                except Exception as e:
-                    logger.error(f"[Playwright] Failed to launch browser: {e}")
-                    raise
-    
-    async def get_metadata(self, song_name: str, artist_hint: str) -> Optional[Dict]:
-        """Playwright doesn't fetch metadata - use Gemini API for that"""
-        return None    
-    
-    async def close(self):
-        """Clean up browser resources"""
-        if self._browser:
-            await self._browser.close()
-        if self._playwright:
-            await self._playwright.stop()
-
-
 # ============================================================================
-# STRATEGY 3: Gemini Web Automation (Using Playwright - No API key needed!)
+# STRATEGY 2: Gemini Web Automation (Using Selenium - Production Ready!)
 # ============================================================================
 
 class GeminiWebAutomationStrategy(MetadataProviderStrategy):
     """
-    Automates Gemini web interface using Playwright.
+    Automates Gemini web interface using Selenium with Chrome.
     Works WITHOUT API key - uses browser automation to get metadata.
+    
+    Production-ready features:
+    - Runs in ThreadPoolExecutor for async compatibility
+    - Chrome options optimized for Docker/Cloud Run
+    - Fast polling for quick response detection
     """
     
     def __init__(self):
-        self._browser = None
-        self._playwright = None
-        self._context = None
         self._lock = asyncio.Lock()
     
-    async def _ensure_browser(self):
-        """Initialize Playwright browser with persistent context"""
-        async with self._lock:
-            if self._browser is None:
-                try:
-                    from playwright.async_api import async_playwright
-                    self._playwright = await async_playwright().start()
-                    self._browser = await self._playwright.chromium.launch(
-                        headless=True,
-                        args=[
-                            '--no-sandbox',
-                            '--disable-setuid-sandbox',
-                            '--disable-dev-shm-usage',
-                            '--disable-gpu'
-                        ]
-                    )
-                    self._context = await self._browser.new_context()
-                    logger.info("[GeminiWeb] Browser initialized for web automation")
-                except ImportError:
-                    logger.warning("[GeminiWeb] Playwright not installed")
-                    raise
-                except Exception as e:
-                    logger.error(f"[GeminiWeb] Failed to launch browser: {e}")
-                    raise
-    
-    async def get_metadata(self, song_name: str, artist_hint: str) -> Optional[Dict]:
-        """
-        Automate Gemini web to get song metadata.
-        Similar to user's Selenium script but using Playwright.
-        """
+    def _create_chrome_driver(self):
+        """Create Chrome WebDriver with production-ready options"""
+        from selenium import webdriver
+        from selenium.webdriver.chrome.options import Options
+        from selenium.webdriver.chrome.service import Service
+        
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--window-size=1920,1080")
+        chrome_options.add_argument("--disable-extensions")
+        chrome_options.add_argument("--disable-background-networking")
+        chrome_options.add_argument("--disable-default-apps")
+        chrome_options.add_argument("--disable-sync")
+        chrome_options.add_argument("--disable-translate")
+        chrome_options.add_argument("--metrics-recording-only")
+        chrome_options.add_argument("--mute-audio")
+        chrome_options.add_argument("--no-first-run")
+        chrome_options.add_argument("--safebrowsing-disable-auto-update")
+        # Faster page load
+        chrome_options.page_load_strategy = 'eager'
+        
         try:
-            await self._ensure_browser()
-            
-            page = await self._context.new_page()
-            
-            try:
-                # Navigate to Gemini
-                logger.info(f"[GeminiWeb] Opening Gemini for: {song_name}")
-                await page.goto("https://gemini.google.com", wait_until="domcontentloaded", timeout=20000)
-                await page.wait_for_timeout(2000)  # Reduced wait - page loads fast
-                
-                # Find the text input area (ql-editor div)
-                prompt = f"""SYSTEM: Act as a music metadata API for Indian/Bollywood songs.
+            # Try webdriver-manager first (for local development)
+            from webdriver_manager.chrome import ChromeDriverManager
+            service = Service(ChromeDriverManager().install())
+            driver = webdriver.Chrome(service=service, options=chrome_options)
+        except Exception:
+            # Fallback to system Chrome (for Docker/Cloud Run)
+            driver = webdriver.Chrome(options=chrome_options)
+        
+        driver.set_page_load_timeout(20)
+        driver.implicitly_wait(2)
+        
+        return driver
+    
+    def _run_selenium_sync(self, song_name: str, artist_hint: str) -> Optional[Dict]:
+        """
+        Run Selenium in a separate thread to not block async event loop.
+        This is the core browser automation logic.
+        """
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.common.keys import Keys
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
+        import time
+        
+        prompt = f"""SYSTEM: Act as a music metadata API for Indian/Bollywood songs.
 TASK: Return song credits as JSON.
 RULES:
 1. Output ONLY raw JSON. No markdown, no backticks, no explanation.
 2. Include 2-3 line biography for each person.
-3. If unknown, use null.
+3. If information is unknown, use null for that field.
+4. Be accurate - don't make up information.
 
 Input: {{"song": "{song_name}", "artist_hint": "{artist_hint}"}}
 
 Output format:
-{{"singer": {{"name": "...", "bio": "..."}}, "music_director": {{"name": "...", "bio": "..."}} or null, "lyricist": {{"name": "...", "bio": "..."}} or null, "movie": "..." or null, "year": "..." or null}}"""
+{{
+  "singer": {{"name": "...", "bio": "2-3 line bio"}},
+  "music_director": {{"name": "...", "bio": "2-3 line bio"}} or null,
+  "lyricist": {{"name": "...", "bio": "2-3 line bio"}} or null,
+  "movie": "movie/album name" or null,
+  "movie_info": "1-2 line about movie/album" or null,
+  "year": "year" or null
+}}"""
+
+        driver = None
+        try:
+            driver = self._create_chrome_driver()
+            logger.info("[Selenium] Browser launched")
+            
+            # Navigate to Gemini - fast load
+            logger.info(f"[Selenium] Opening Gemini for: {song_name}")
+            driver.get("https://gemini.google.com")
+            time.sleep(1)  # Reduced from 2s - page loads fast
+            
+            # Find and fill input
+            try:
+                wait = WebDriverWait(driver, 5)  # Reduced from 8s
                 
-                # Try to find and fill the input
+                # Try ql-editor first (Gemini's rich text editor)
                 try:
-                    # Wait for input area
-                    await page.wait_for_selector("div.ql-editor, textarea", timeout=8000)
+                    editor = wait.until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, "div.ql-editor"))
+                    )
+                    editor.click()
+                    editor.send_keys(prompt)
+                    editor.send_keys(Keys.RETURN)
+                except Exception:
+                    # Fallback to textarea
+                    textarea = wait.until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, "textarea"))
+                    )
+                    textarea.send_keys(prompt)
+                    textarea.send_keys(Keys.RETURN)
+                
+                # Wait for response - FAST polling (300ms), max 5 minutes
+                logger.info("[Selenium] Waiting for Gemini response...")
+                
+                for attempt in range(1000):  # Max 5 minutes (1000 x 300ms = 300s)
+                    time.sleep(0.3)  # 300ms polling - returns immediately when found
                     
-                    # Try ql-editor first (rich text editor)
-                    editor = await page.query_selector("div.ql-editor")
-                    if editor:
-                        await editor.click()
-                        await editor.fill(prompt)
-                        await page.keyboard.press("Enter")
-                    else:
-                        # Fallback to textarea
-                        textarea = await page.query_selector("textarea")
-                        if textarea:
-                            await textarea.fill(prompt)
-                            await page.keyboard.press("Enter")
-                        else:
-                            logger.warning("[GeminiWeb] Could not find input element")
-                            return None
-                    
-                    # Wait for response - poll fast for quick detection
-                    logger.info("[GeminiWeb] Waiting for Gemini response...")
-                    
-                    # Poll for response with JSON - faster polling (500ms intervals)
-                    for attempt in range(40):  # Max 20 seconds (40 x 500ms)
-                        await page.wait_for_timeout(500)  # 500ms polling - faster!
+                    try:
+                        # Look for response paragraph
+                        response_elems = driver.find_elements(
+                            By.CSS_SELECTOR, 
+                            "[id^='model-response-message'] p, .response-content p"
+                        )
                         
-                        # Look for response message
-                        response_elem = await page.query_selector("[id^='model-response-message'] p, .response-content p")
-                        if response_elem:
-                            text = await response_elem.inner_text()
-                            text = text.strip()
-                            
-                            # Check if it looks like JSON
+                        for elem in response_elems:
+                            text = elem.text.strip()
                             if text.startswith("{") and text.endswith("}"):
                                 try:
                                     data = json.loads(text)
-                                    logger.info("[GeminiWeb] Successfully parsed metadata from Gemini")
+                                    logger.info(f"[Selenium] Raw JSON from Gemini: {text[:500]}")
+                                    logger.info(f"[Selenium] Parsed data keys: {list(data.keys()) if isinstance(data, dict) else 'not a dict'}")
                                     return data
                                 except json.JSONDecodeError:
                                     continue
-                    
-                    logger.warning("[GeminiWeb] Timeout waiting for Gemini response")
-                    return None
-                    
-                except Exception as e:
-                    logger.warning(f"[GeminiWeb] Failed to interact with Gemini: {e}")
-                    return None
-                    
-            finally:
-                await page.close()
+                    except Exception:
+                        continue
                 
-        except ImportError:
-            logger.warning("[GeminiWeb] Playwright not available")
+                logger.warning("[Selenium] Timeout waiting for Gemini response")
+                return None
+                
+            except Exception as e:
+                logger.warning(f"[Selenium] Failed to interact with Gemini: {str(e)[:100]}")
+                return None
+                
+        except ImportError as e:
+            logger.error(f"[Selenium] Dependencies not installed: {str(e)[:100]}")
             return None
         except Exception as e:
-            logger.error(f"[GeminiWeb] Error: {str(e)[:100]}")
+            logger.error(f"[Selenium] Error: {str(e)[:100]}")
+            return None
+        finally:
+            if driver:
+                try:
+                    driver.quit()
+                except Exception:
+                    pass
+    
+    async def get_metadata(self, song_name: str, artist_hint: str) -> Optional[Dict]:
+        """
+        Run Selenium in ThreadPoolExecutor for async compatibility.
+        """
+        import concurrent.futures
+        
+        try:
+            loop = asyncio.get_event_loop()
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                result = await loop.run_in_executor(
+                    executor,
+                    self._run_selenium_sync,
+                    song_name,
+                    artist_hint
+                )
+                return result
+        except Exception as e:
+            logger.error(f"[Selenium] Thread executor error: {str(e)[:100]}")
             return None
     
     async def get_image_url(self, query: str) -> Optional[str]:
@@ -294,13 +301,8 @@ Output format:
         return None
     
     async def close(self):
-        """Clean up browser resources"""
-        if self._context:
-            await self._context.close()
-        if self._browser:
-            await self._browser.close()
-        if self._playwright:
-            await self._playwright.stop()
+        """No persistent resources to clean up"""
+        pass
 
 
 # ============================================================================
@@ -337,6 +339,7 @@ Output format:
   "music_director": {{"name": "...", "bio": "2-3 line bio"}} or null,
   "lyricist": {{"name": "...", "bio": "2-3 line bio"}} or null,
   "movie": "movie/album name" or null,
+  "movie_info": "1-2 line about movie/album" or null,
   "year": "year" or null
 }}"""
 
@@ -461,40 +464,126 @@ class SongInfoService:
             "music_director": None,
             "lyricist": None,
             "movie": None,
+            "movie_info": None,
             "year": None
         }
         
         # Handle if Gemini returned a list instead of dict
         if ai_data:
+            logger.info(f"[Build] ai_data type: {type(ai_data)}, keys: {list(ai_data.keys()) if isinstance(ai_data, dict) else 'N/A'}")
+            
             if isinstance(ai_data, list) and len(ai_data) > 0:
                 ai_data = ai_data[0]  # Take first element
+                logger.info(f"[Build] Took first element from list")
             
-            if isinstance(ai_data, dict) and ai_data.get("singer"):
-                singer = ai_data["singer"]
-                response["singer"]["name"] = singer.get("name") or response["singer"]["name"]
-                response["singer"]["bio"] = singer.get("bio")
+            # Format 1: song_metadata.credits (nested)
+            if isinstance(ai_data, dict) and ai_data.get("song_metadata"):
+                logger.info("[Build] Using format: song_metadata.credits")
+                metadata = ai_data["song_metadata"]
+                credits = metadata.get("credits", {})
+                
+                # Extract singers (take first singer)
+                singers = credits.get("singers", [])
+                if singers and len(singers) > 0:
+                    first_singer = singers[0]
+                    response["singer"]["name"] = first_singer.get("name") or response["singer"]["name"]
+                    response["singer"]["bio"] = first_singer.get("biography") or first_singer.get("bio")
+                
+                # Extract music director
+                md = credits.get("music_director")
+                if md and md.get("name"):
+                    response["music_director"] = {
+                        "name": md.get("name"),
+                        "role": "Music Director",
+                        "bio": md.get("biography") or md.get("bio"),
+                        "photo_base64": None
+                    }
+                
+                # Extract lyricist
+                lyr = credits.get("lyricist")
+                if lyr and lyr.get("name"):
+                    response["lyricist"] = {
+                        "name": lyr.get("name"),
+                        "role": "Lyricist",
+                        "bio": lyr.get("biography") or lyr.get("bio"),
+                        "photo_base64": None
+                    }
+                
+                # Movie and year
+                response["movie"] = metadata.get("movie") or metadata.get("title")
+                response["movie_info"] = metadata.get("movie_info")
+                response["year"] = metadata.get("release_year") or metadata.get("year")
             
-            if isinstance(ai_data, dict) and ai_data.get("music_director") and ai_data["music_director"].get("name"):
-                md = ai_data["music_director"]
-                response["music_director"] = {
-                    "name": md.get("name"),
-                    "role": "Music Director",
-                    "bio": md.get("bio"),
-                    "photo_base64": None
-                }
+            # Format 2: credits at ROOT level (song_title, movie, credits.singers)
+            elif isinstance(ai_data, dict) and ai_data.get("credits"):
+                logger.info("[Build] Using format: credits at ROOT level")
+                credits = ai_data["credits"]
+                
+                # Extract singers (take first singer)
+                singers = credits.get("singers", [])
+                if singers and len(singers) > 0:
+                    first_singer = singers[0]
+                    response["singer"]["name"] = first_singer.get("name") or response["singer"]["name"]
+                    response["singer"]["bio"] = first_singer.get("biography") or first_singer.get("bio")
+                    logger.info(f"[Build] Extracted singer: {response['singer']['name']}")
+                
+                # Extract music director
+                md = credits.get("music_director")
+                if md and md.get("name"):
+                    response["music_director"] = {
+                        "name": md.get("name"),
+                        "role": "Music Director",
+                        "bio": md.get("biography") or md.get("bio"),
+                        "photo_base64": None
+                    }
+                    logger.info(f"[Build] Extracted music_director: {md.get('name')}")
+                
+                # Extract lyricist
+                lyr = credits.get("lyricist")
+                if lyr and lyr.get("name"):
+                    response["lyricist"] = {
+                        "name": lyr.get("name"),
+                        "role": "Lyricist",
+                        "bio": lyr.get("biography") or lyr.get("bio"),
+                        "photo_base64": None
+                    }
+                    logger.info(f"[Build] Extracted lyricist: {lyr.get('name')}")
+                
+                # Movie and year from root
+                response["movie"] = ai_data.get("movie") or ai_data.get("song_title")
+                response["movie_info"] = ai_data.get("movie_info")
+                response["year"] = ai_data.get("release_year") or ai_data.get("year")
+                logger.info(f"[Build] Movie: {response['movie']}, Year: {response['year']}")
             
-            if isinstance(ai_data, dict) and ai_data.get("lyricist") and ai_data["lyricist"].get("name"):
-                lyr = ai_data["lyricist"]
-                response["lyricist"] = {
-                    "name": lyr.get("name"),
-                    "role": "Lyricist",
-                    "bio": lyr.get("bio"),
-                    "photo_base64": None
-                }
-            
-            if isinstance(ai_data, dict):
+            # Format 3: Old format (singer, music_director, lyricist at root)
+            elif isinstance(ai_data, dict):
+                if ai_data.get("singer"):
+                    singer = ai_data["singer"]
+                    response["singer"]["name"] = singer.get("name") or response["singer"]["name"]
+                    response["singer"]["bio"] = singer.get("bio") or singer.get("biography")
+                    logger.info(f"[Build] Extracted singer: {response['singer']['name']}")
+                
+                if ai_data.get("music_director") and ai_data["music_director"].get("name"):
+                    md = ai_data["music_director"]
+                    response["music_director"] = {
+                        "name": md.get("name"),
+                        "role": "Music Director",
+                        "bio": md.get("bio") or md.get("biography"),
+                        "photo_base64": None
+                    }
+                
+                if ai_data.get("lyricist") and ai_data["lyricist"].get("name"):
+                    lyr = ai_data["lyricist"]
+                    response["lyricist"] = {
+                        "name": lyr.get("name"),
+                        "role": "Lyricist",
+                        "bio": lyr.get("bio") or lyr.get("biography"),
+                        "photo_base64": None
+                    }
+                
                 response["movie"] = ai_data.get("movie")
-                response["year"] = ai_data.get("year")
+                response["movie_info"] = ai_data.get("movie_info")
+                response["year"] = ai_data.get("year") or ai_data.get("release_year")
         
         # Fetch photos concurrently - format: {name} {role} wallpaper high resolution
         tasks = []

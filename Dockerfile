@@ -1,14 +1,17 @@
 # ============================================================================
-# FILE: Dockerfile (Simple - All-in-One)
-# Includes Playwright for browser automation in Cloud/Docker
+# FILE: Dockerfile (Production Ready - Selenium + Chrome)
+# Optimized for Google Cloud Run with Chrome for browser automation
 # ============================================================================
 FROM python:3.11-slim
 
-# Install system dependencies including Playwright requirements
+# Install system dependencies including Chrome
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     curl \
-    # Playwright dependencies for Chromium
+    wget \
+    gnupg \
+    unzip \
+    # Chrome dependencies
     libnss3 \
     libnspr4 \
     libatk1.0-0 \
@@ -26,7 +29,27 @@ RUN apt-get update && apt-get install -y \
     libasound2 \
     libpango-1.0-0 \
     libcairo2 \
+    fonts-liberation \
+    libappindicator3-1 \
+    xdg-utils \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Chrome (stable version for production)
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install ChromeDriver (matching Chrome version)
+RUN CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d. -f1) \
+    && CHROMEDRIVER_VERSION=$(curl -sS "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_${CHROME_VERSION}") \
+    && wget -q "https://storage.googleapis.com/chrome-for-testing-public/${CHROMEDRIVER_VERSION}/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver.zip \
+    && unzip /tmp/chromedriver.zip -d /tmp/ \
+    && mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/ \
+    && chmod +x /usr/local/bin/chromedriver \
+    && rm -rf /tmp/chromedriver* \
+    || echo "ChromeDriver install attempt completed"
 
 WORKDIR /app
 
@@ -35,17 +58,15 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Force install latest yt-dlp (CRITICAL: YouTube bot detection bypass)
-# This must run AFTER requirements.txt to override any pinned versions
 RUN pip uninstall -y yt-dlp && pip install --no-cache-dir --upgrade yt-dlp
 RUN pip install --no-cache-dir --upgrade ytmusicapi
 RUN pip install pydantic[email]
 
-# Install Playwright browsers (chromium only - smaller size)
-RUN playwright install chromium --with-deps || echo "Playwright browser install skipped"
-
-# Verify versions
+# Verify installations
 RUN python -c "import yt_dlp; print(f'yt-dlp version: {yt_dlp.version.__version__}')"
-RUN python -c "try:\n    from playwright.sync_api import sync_playwright\n    print('Playwright installed successfully')\nexcept ImportError:\n    print('Playwright not available - will use HTTP fallback')"
+RUN python -c "from selenium import webdriver; print('Selenium installed successfully')"
+RUN google-chrome --version || echo "Chrome version check skipped"
+RUN chromedriver --version || echo "ChromeDriver version check skipped"
 
 # Copy application
 COPY . .
@@ -56,9 +77,10 @@ RUN mkdir -p logs
 # Make startup script executable
 RUN chmod +x start.sh
 
-# Environment variables for Playwright in container
-ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
+# Environment variables for Chrome in container
+ENV CHROME_BIN=/usr/bin/google-chrome
+ENV CHROME_PATH=/usr/bin/google-chrome
+ENV CHROMEDRIVER_PATH=/usr/local/bin/chromedriver
 
 # Expose port (Cloud Run uses PORT env variable, default to 8000)
 EXPOSE 8000
